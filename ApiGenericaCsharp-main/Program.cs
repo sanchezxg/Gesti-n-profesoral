@@ -121,8 +121,7 @@ builder.Services.AddSwaggerGen(opciones =>
 // - AddScoped: Una instancia por request HTTP (se crea y destruye con cada petición)
 // - AddTransient: Una instancia nueva cada vez que se solicita
 // -----------------------------------------------------------------
-builder.Services.AddScoped<IAliadoRepositorio, AliadoRepositorio>();
-builder.Services.AddScoped<AliadoServicio>();
+
 // -----------------------------------------------------------------
 // REGISTRO DE POLÍTICA DE TABLAS PROHIBIDAS
 // -----------------------------------------------------------------
