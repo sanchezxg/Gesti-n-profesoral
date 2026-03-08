@@ -17,7 +17,9 @@ using Microsoft.Extensions.Hosting;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.IdentityModel.Tokens;
 using System.Text;
-using ApiGenericaCsharp.Modelos; // donde está ConfiguracionJwt
+using ApiGenericaCsharp.Modelos;
+using ApiGenericaCsharp.Servicios;
+using ApiGenericaCsharp.Repositorios.Abstracciones; // donde está ConfiguracionJwt
 
 // Crea el "builder": punto de inicio para configurar servicios y la aplicación.
 var builder = WebApplication.CreateBuilder(args);
