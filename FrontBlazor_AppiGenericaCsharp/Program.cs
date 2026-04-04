@@ -14,6 +14,7 @@ builder.Services.AddScoped(sp => new HttpClient
 });
 
 builder.Services.AddScoped<FrontBlazor_AppiGenericaCsharp.Services.ApiService>();
+builder.Services.AddScoped<FrontBlazor_AppiGenericaCsharp.Services.SpService>();
 
 var app = builder.Build();
 
