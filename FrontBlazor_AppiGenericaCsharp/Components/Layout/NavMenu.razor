@@ -1,4 +1,6 @@
-﻿﻿<div class="top-row ps-3 navbar navbar-dark">
+﻿﻿@using Microsoft.AspNetCore.Components.Routing
+
+<div class="top-row ps-3 navbar navbar-dark">
     <div class="container-fluid">
         <a class="navbar-brand" href="">Gestion Profesoral</a>
     </div>
@@ -24,11 +26,39 @@
             <NavLink class="nav-link" href="/Aliado">
                 <span class="bi bi-plus-square-fill-nav-menu" aria-hidden="true"></span> Aliado
             </NavLink>
+        </div>
 
+        <div class="nav-item px-3">
+            <NavLink class="nav-link" href="/estudios-realizados">
+                <span class="bi bi-journal-bookmark-fill" aria-hidden="true"></span> Estudios Realizados
+            </NavLink>
+        </div>
+
+        <div class="nav-item px-3">
+            <NavLink class="nav-link" href="/beca">
+                <span class="bi bi-mortarboard-fill" aria-hidden="true"></span> Becas
+            </NavLink>
+        </div>
+
+        <div class="nav-item px-3">
+            <NavLink class="nav-link" href="/apoyo-profesoral">
+                <span class="bi bi-person-arms-up" aria-hidden="true"></span> Apoyo Profesoral
+            </NavLink>
+        </div>
+
+        <div class="nav-item px-3">
+            <NavLink class="nav-link" href="/area-conocimiento">
+                <span class="bi bi-book-half" aria-hidden="true"></span> Áreas Conocimiento
+            </NavLink>
             
         </div>
 
+        <div class="nav-item px-3">
+            <NavLink class="nav-link" href="/estudio-area">
+                <span class="bi bi-diagram-3-fill" aria-hidden="true"></span> Estudio-Área
+            </NavLink>
 
+        </div>
 
         <div class="nav-item px-3">
             <NavLink class="nav-link" href="/Linea_Investigacion">

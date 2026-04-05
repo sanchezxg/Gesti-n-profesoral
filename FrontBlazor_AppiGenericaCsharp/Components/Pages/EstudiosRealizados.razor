@@ -1,0 +1,166 @@
+@page "/estudios-realizados"
+@rendermode InteractiveServer
+@inject FrontBlazor_AppiGenericaCsharp.Services.ApiService Api
+
+<PageTitle>Estudios Realizados</PageTitle>
+
+<div class="container mt-4">
+    <h3>Estudios Realizados</h3>
+
+    @* Muestra mensajes de éxito o error retornados por la API *@
+    @if (!string.IsNullOrEmpty(mensaje))
+    {
+        <div class="alert @(exito ? "alert-success" : "alert-danger") alert-dismissible fade show">
+            @mensaje
+            <button type="button" class="btn-close" @onclick="() => mensaje = string.Empty"></button>
+        </div>
+    }
+
+    @* Botón para abrir el formulario de creación *@
+    @if (!mostrarFormulario)
+    {
+        <button class="btn btn-primary mb-3" @onclick="NuevoRegistro">Nuevo Estudio</button>
+    }
+
+    @* Formulario dinámico para Crear y Editar *@
+    @if (mostrarFormulario)
+    {
+        <div class="card mb-3">
+            <div class="card-header">@(editando ? "Editar Estudio" : "Nuevo Estudio")</div>
+            <div class="card-body">
+                <div class="row">
+                    @* ID es la PK. Se deshabilita en edición para no alterar la llave primaria *@
+                    <div class="col-md-3 mb-3">
+                        <label class="form-label">ID Estudio</label>
+                        <input class="form-control" type="number" @bind="campoId" disabled="@editando"/>
+                    </div>
+                    <div class="col-md-6 mb-3">
+                        <label class="form-label">Título</label>
+                        <input class="form-control" @bind="campoTitulo"/>
+                    </div>
+                    @* Cédula del docente: Debe existir en la tabla 'docente' *@
+                    <div class="col-md-3 mb-3">
+                        <label class="form-label">Cédula Docente (FK)</label>
+                        <input class="form-control" type="number" @bind="campoDocente"/>
+                    </div>
+                    <div class="col-md-6 mb-3">
+                        <label class="form-label">Universidad</label>
+                        <input class="form-control" @bind="campoUniversidad"/>
+                    </div>
+                    <div class="col-md-3 mb-3">
+                        <label class="form-label">Fecha de Grado</label>
+                        <input class="form-control" type="date" @bind="campoFecha"/>
+                    </div>
+                    <div class="col-md-3 mb-3">
+                        <label class="form-label">Tipo (Pregrado/Posgrado)</label>
+                        <input class="form-control" @bind="campoTipo"/>
+                    </div>
+                </div>
+                <div class="mt-3">
+                    <button class="btn btn-success me-2" @onclick="GuardarRegistro">Guardar</button>
+                    <button class="btn btn-secondary" @onclick="Cancelar">Cancelar</button>
+                </div>
+            </div>
+        </div>
+    }
+
+    @* Visualización de datos en tabla *@
+    @if (cargando)
+    {
+        <div class="d-flex justify-content-center my-4"><div class="spinner-border text-primary"></div></div>
+    }
+    else
+    {
+        <table class="table table-striped">
+            <thead class="table-dark">
+                <tr>
+                    <th>ID</th><th>Título</th><th>Docente</th><th>Universidad</th><th>Acciones</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var reg in registros)
+                {
+                    <tr>
+                        <td>@reg["id"]</td>
+                        <td>@reg["titulo"]</td>
+                        <td>@reg["docente"]</td>
+                        <td>@reg["universidad"]</td>
+                        <td>
+                            <button class="btn btn-warning btn-sm" @onclick="() => EditarRegistro(reg)">Editar</button>
+                            <button class="btn btn-danger btn-sm" @onclick="() => EliminarRegistro(reg)">Eliminar</button>
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    }
+</div>
+
+@code {
+    // Lista que almacena los datos en formato de diccionario (JSON genérico)
+    private List<Dictionary<string, object?>> registros = new();
+    private bool cargando = true, mostrarFormulario = false, editando = false, exito = false;
+    private string mensaje = string.Empty;
+
+    // Variables vinculadas a los inputs del formulario
+    private int campoId, campoDocente;
+    private string campoTitulo = "", campoUniversidad = "", campoTipo = "";
+    private DateTime campoFecha = DateTime.Now;
+
+    // Se ejecuta al cargar la página
+    protected override async Task OnInitializedAsync() => await CargarRegistros();
+
+    // Obtiene todos los estudios desde la API
+    private async Task CargarRegistros() { 
+        cargando = true; 
+        registros = await Api.ListarAsync("estudios_realizados"); 
+        cargando = false; 
+    }
+
+    // Prepara el formulario para un nuevo registro
+    private void NuevoRegistro() { 
+        editando = false; campoId = 0; campoTitulo = ""; campoDocente = 0;
+        mostrarFormulario = true; mensaje = ""; 
+    }
+
+    // Carga los datos del registro seleccionado en las variables del formulario
+    private void EditarRegistro(Dictionary<string, object?> reg) {
+        editando = true;
+        campoId = int.Parse(reg["id"]?.ToString() ?? "0");
+        campoTitulo = reg["titulo"]?.ToString() ?? "";
+        campoDocente = int.Parse(reg["docente"]?.ToString() ?? "0");
+        campoUniversidad = reg["universidad"]?.ToString() ?? "";
+        campoFecha = DateTime.TryParse(reg["fecha"]?.ToString(), out var f) ? f : DateTime.Now;
+        campoTipo = reg["tipo"]?.ToString() ?? "";
+        mostrarFormulario = true;
+    }
+
+    // Envía los datos a la API (POST para nuevo, PUT para editar)
+    private async Task GuardarRegistro() {
+        var datos = new Dictionary<string, object?> {
+            ["id"] = campoId, 
+            ["titulo"] = campoTitulo, 
+            ["universidad"] = campoUniversidad,
+            ["fecha"] = campoFecha.ToString("yyyy-MM-dd"), // Formato de fecha para SQL Server
+            ["tipo"] = campoTipo, 
+            ["docente"] = campoDocente,
+            ["ins_acreditada"] = 1 // Valor por defecto requerido por el script
+        };
+
+        var res = editando 
+            ? await Api.ActualizarAsync("estudios_realizados", "id", campoId.ToString(), datos) 
+            : await Api.CrearAsync("estudios_realizados", datos);
+
+        exito = res.exito; 
+        mensaje = res.mensaje;
+        if (exito) { mostrarFormulario = false; await CargarRegistros(); }
+    }
+
+    private async Task EliminarRegistro(Dictionary<string, object?> reg) {
+        var res = await Api.EliminarAsync("estudios_realizados", "id", reg["id"]?.ToString() ?? "");
+        exito = res.exito; mensaje = res.mensaje;
+        if (exito) await CargarRegistros();
+    }
+
+    private void Cancelar() => mostrarFormulario = false;
+}

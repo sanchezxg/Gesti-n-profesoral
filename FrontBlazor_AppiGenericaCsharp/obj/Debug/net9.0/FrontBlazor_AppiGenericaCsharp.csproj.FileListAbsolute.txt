@@ -224,8 +224,6 @@ C:\Users\ferne\OneDrive\Escritorio\proyectoc#\Gesti-n-profesoral\FrontBlazor_App
 C:\Users\ferne\OneDrive\Escritorio\proyectoc#\Gesti-n-profesoral\FrontBlazor_AppiGenericaCsharp\obj\Debug\net9.0\compressed\1lefltbne1-h1s4sie4z3.gz
 C:\Users\ferne\OneDrive\Escritorio\proyectoc#\Gesti-n-profesoral\FrontBlazor_AppiGenericaCsharp\obj\Debug\net9.0\compressed\ng84dsuo62-4d85u1mtcx.gz
 C:\Users\ferne\OneDrive\Escritorio\proyectoc#\Gesti-n-profesoral\FrontBlazor_AppiGenericaCsharp\obj\Debug\net9.0\compressed\fni16yzeom-0j3bgjxly4.gz
-C:\Users\ferne\OneDrive\Escritorio\proyectoc#\Gesti-n-profesoral\FrontBlazor_AppiGenericaCsharp\obj\Debug\net9.0\compressed\38zrahbi1u-cwjxuhhx0t.gz
-C:\Users\ferne\OneDrive\Escritorio\proyectoc#\Gesti-n-profesoral\FrontBlazor_AppiGenericaCsharp\obj\Debug\net9.0\compressed\n5gztkbl53-cwjxuhhx0t.gz
 C:\Users\ferne\OneDrive\Escritorio\proyectoc#\Gesti-n-profesoral\FrontBlazor_AppiGenericaCsharp\obj\Debug\net9.0\staticwebassets.build.json
 C:\Users\ferne\OneDrive\Escritorio\proyectoc#\Gesti-n-profesoral\FrontBlazor_AppiGenericaCsharp\obj\Debug\net9.0\staticwebassets.build.json.cache
 C:\Users\ferne\OneDrive\Escritorio\proyectoc#\Gesti-n-profesoral\FrontBlazor_AppiGenericaCsharp\obj\Debug\net9.0\staticwebassets.development.json
@@ -235,3 +233,5 @@ C:\Users\ferne\OneDrive\Escritorio\proyectoc#\Gesti-n-profesoral\FrontBlazor_App
 C:\Users\ferne\OneDrive\Escritorio\proyectoc#\Gesti-n-profesoral\FrontBlazor_AppiGenericaCsharp\obj\Debug\net9.0\FrontBlazor_AppiGenericaCsharp.pdb
 C:\Users\ferne\OneDrive\Escritorio\proyectoc#\Gesti-n-profesoral\FrontBlazor_AppiGenericaCsharp\obj\Debug\net9.0\FrontBlazor_AppiGenericaCsharp.genruntimeconfig.cache
 C:\Users\ferne\OneDrive\Escritorio\proyectoc#\Gesti-n-profesoral\FrontBlazor_AppiGenericaCsharp\obj\Debug\net9.0\ref\FrontBlazor_AppiGenericaCsharp.dll
+C:\Users\ferne\OneDrive\Escritorio\proyectoc#\Gesti-n-profesoral\FrontBlazor_AppiGenericaCsharp\obj\Debug\net9.0\compressed\38zrahbi1u-3g02x06mby.gz
+C:\Users\ferne\OneDrive\Escritorio\proyectoc#\Gesti-n-profesoral\FrontBlazor_AppiGenericaCsharp\obj\Debug\net9.0\compressed\n5gztkbl53-3g02x06mby.gz

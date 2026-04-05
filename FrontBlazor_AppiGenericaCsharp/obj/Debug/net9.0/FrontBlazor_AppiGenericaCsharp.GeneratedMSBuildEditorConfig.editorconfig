@@ -24,16 +24,56 @@ build_property.EnableCodeStyleSeverity =
 build_metadata.AdditionalFiles.TargetPath = Q29tcG9uZW50c1xBcHAucmF6b3I=
 build_metadata.AdditionalFiles.CssScope = 
 
-[C:/Users/ferne/OneDrive/Escritorio/proyectoc\#/Gesti-n-profesoral/FrontBlazor_AppiGenericaCsharp/Components/Pages/CrudRed.razor]
-build_metadata.AdditionalFiles.TargetPath = Q29tcG9uZW50c1xQYWdlc1xDcnVkUmVkLnJhem9y
+[C:/Users/ferne/OneDrive/Escritorio/proyectoc\#/Gesti-n-profesoral/FrontBlazor_AppiGenericaCsharp/Components/Pages/Aliado.razor]
+build_metadata.AdditionalFiles.TargetPath = Q29tcG9uZW50c1xQYWdlc1xBbGlhZG8ucmF6b3I=
+build_metadata.AdditionalFiles.CssScope = 
+
+[C:/Users/ferne/OneDrive/Escritorio/proyectoc\#/Gesti-n-profesoral/FrontBlazor_AppiGenericaCsharp/Components/Pages/ApoyoProfesoral.razor]
+build_metadata.AdditionalFiles.TargetPath = Q29tcG9uZW50c1xQYWdlc1xBcG95b1Byb2Zlc29yYWwucmF6b3I=
+build_metadata.AdditionalFiles.CssScope = 
+
+[C:/Users/ferne/OneDrive/Escritorio/proyectoc\#/Gesti-n-profesoral/FrontBlazor_AppiGenericaCsharp/Components/Pages/AreaConocimiento.razor]
+build_metadata.AdditionalFiles.TargetPath = Q29tcG9uZW50c1xQYWdlc1xBcmVhQ29ub2NpbWllbnRvLnJhem9y
+build_metadata.AdditionalFiles.CssScope = 
+
+[C:/Users/ferne/OneDrive/Escritorio/proyectoc\#/Gesti-n-profesoral/FrontBlazor_AppiGenericaCsharp/Components/Pages/Beca.razor]
+build_metadata.AdditionalFiles.TargetPath = Q29tcG9uZW50c1xQYWdlc1xCZWNhLnJhem9y
+build_metadata.AdditionalFiles.CssScope = 
+
+[C:/Users/ferne/OneDrive/Escritorio/proyectoc\#/Gesti-n-profesoral/FrontBlazor_AppiGenericaCsharp/Components/Pages/Docente.razor]
+build_metadata.AdditionalFiles.TargetPath = Q29tcG9uZW50c1xQYWdlc1xEb2NlbnRlLnJhem9y
 build_metadata.AdditionalFiles.CssScope = 
 
 [C:/Users/ferne/OneDrive/Escritorio/proyectoc\#/Gesti-n-profesoral/FrontBlazor_AppiGenericaCsharp/Components/Pages/Error.razor]
 build_metadata.AdditionalFiles.TargetPath = Q29tcG9uZW50c1xQYWdlc1xFcnJvci5yYXpvcg==
 build_metadata.AdditionalFiles.CssScope = 
 
+[C:/Users/ferne/OneDrive/Escritorio/proyectoc\#/Gesti-n-profesoral/FrontBlazor_AppiGenericaCsharp/Components/Pages/EstudioAc.razor]
+build_metadata.AdditionalFiles.TargetPath = Q29tcG9uZW50c1xQYWdlc1xFc3R1ZGlvQWMucmF6b3I=
+build_metadata.AdditionalFiles.CssScope = 
+
+[C:/Users/ferne/OneDrive/Escritorio/proyectoc\#/Gesti-n-profesoral/FrontBlazor_AppiGenericaCsharp/Components/Pages/EstudiosRealizados.razor]
+build_metadata.AdditionalFiles.TargetPath = Q29tcG9uZW50c1xQYWdlc1xFc3R1ZGlvc1JlYWxpemFkb3MucmF6b3I=
+build_metadata.AdditionalFiles.CssScope = 
+
 [C:/Users/ferne/OneDrive/Escritorio/proyectoc\#/Gesti-n-profesoral/FrontBlazor_AppiGenericaCsharp/Components/Pages/Home.razor]
 build_metadata.AdditionalFiles.TargetPath = Q29tcG9uZW50c1xQYWdlc1xIb21lLnJhem9y
+build_metadata.AdditionalFiles.CssScope = 
+
+[C:/Users/ferne/OneDrive/Escritorio/proyectoc\#/Gesti-n-profesoral/FrontBlazor_AppiGenericaCsharp/Components/Pages/Linea_investigacion.razor]
+build_metadata.AdditionalFiles.TargetPath = Q29tcG9uZW50c1xQYWdlc1xMaW5lYV9pbnZlc3RpZ2FjaW9uLnJhem9y
+build_metadata.AdditionalFiles.CssScope = 
+
+[C:/Users/ferne/OneDrive/Escritorio/proyectoc\#/Gesti-n-profesoral/FrontBlazor_AppiGenericaCsharp/Components/Pages/Reconocimiento.razor]
+build_metadata.AdditionalFiles.TargetPath = Q29tcG9uZW50c1xQYWdlc1xSZWNvbm9jaW1pZW50by5yYXpvcg==
+build_metadata.AdditionalFiles.CssScope = 
+
+[C:/Users/ferne/OneDrive/Escritorio/proyectoc\#/Gesti-n-profesoral/FrontBlazor_AppiGenericaCsharp/Components/Pages/Red.razor]
+build_metadata.AdditionalFiles.TargetPath = Q29tcG9uZW50c1xQYWdlc1xSZWQucmF6b3I=
+build_metadata.AdditionalFiles.CssScope = 
+
+[C:/Users/ferne/OneDrive/Escritorio/proyectoc\#/Gesti-n-profesoral/FrontBlazor_AppiGenericaCsharp/Components/Pages/RedDocente.razor]
+build_metadata.AdditionalFiles.TargetPath = Q29tcG9uZW50c1xQYWdlc1xSZWREb2NlbnRlLnJhem9y
 build_metadata.AdditionalFiles.CssScope = 
 
 [C:/Users/ferne/OneDrive/Escritorio/proyectoc\#/Gesti-n-profesoral/FrontBlazor_AppiGenericaCsharp/Components/Routes.razor]
