@@ -20,7 +20,7 @@
     @* ───────── BOTON NUEVO ───────── *@
     @if (!mostrarFormulario)
     {
-        <button class="btn btn-primary mb-3" @onclick="NuevoRegistro">Nuevo Cliente</button>
+        <button class="btn btn-primary mb-3" @onclick="NuevoRegistro">Nuevo Docente</button>
     }
 
     @* ───────── LIMITE DE REGISTROS ───────── *@
@@ -80,7 +80,7 @@
     @* FECHA NACIMIENTO *@
     <div class="col-md-6 mb-3">
         <label class="form-label">Fecha Nacimiento</label>
-        <input class="form-control" type="date" @bind="campoFechaNacimiento" />
+        <input  class="form-control" type="date" @bind="campoFechaNacimiento" />
     </div>
 
     @* CORREO *@
@@ -104,7 +104,7 @@
     @* FECHA ACTUALIZACION *@
     <div class="col-md-6 mb-3">
         <label class="form-label">Fecha Actualización</label>
-        <input class="form-control" type="date" @bind="campoFechaActualizacion" />
+        <input type="date" class="form-control"  @bind="campoFechaActualizacion" />
     </div>
 
     @* ESCALAFON *@
@@ -227,7 +227,7 @@
 
     @if (!cargando && !registros.Any())
     {
-        <div class="alert alert-warning">No se encontraron registros en la tabla cliente.</div>
+        <div class="alert alert-warning">No se encontraron registros en la tabla Docente.</div>
     }
 </div>
 

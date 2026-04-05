@@ -1,12 +1,12 @@
-@page "/RedDocente"
+@page "/Reconocimiento"
 @rendermode InteractiveServer
 @inject FrontBlazor_AppiGenericaCsharp.Services.ApiService Api
 @inject IJSRuntime JS
 
-<PageTitle>RedDocentes</PageTitle>
+<PageTitle>Reconocimiento</PageTitle>
 
 <div class="container mt-4">
-    <h3>RedDocentes</h3>
+    <h3>Reconocimiento</h3>
 
     @* ───────── ALERTA ───────── *@
     @if (!string.IsNullOrEmpty(mensaje))
@@ -20,7 +20,7 @@
     @* ───────── BOTON NUEVO ───────── *@
     @if (!mostrarFormulario)
     {
-        <button class="btn btn-primary mb-3" @onclick="NuevoRegistro">Nuevo RedDocente</button>
+        <button class="btn btn-primary mb-3" @onclick="NuevoRegistro">Nuevo Reconocimiento</button>
     }
 
     @* ───────── LIMITE DE REGISTROS ───────── *@
@@ -39,21 +39,9 @@
             </div>
             <div class="card-body">
                 <div class="row">
-                    @if (editando)
-                    {
-                       
-                    }
+                   
+                                
 
-                     <div class="col-md-6 mb-3">
-                        <label class="form-label">id red</label>
-                        <select class="form-select" @bind="campoRed">
-                            <option value="">-- Seleccione --</option>
-                            @foreach (var r in redes)
-                            {
-                                <option value="@r["idr"]">@r["nombre"] (@r["idr"]) </option>
-                            }
-                        </select>
-                    </div>
 
                     <div class="col-md-6 mb-3">
                         <label class="form-label">Cedula docente</label>
@@ -61,28 +49,35 @@
                             <option value="">-- Seleccione --</option>
                             @foreach (var d in docentes)
                             {
-                                <option value="@d["cedula"]">@d["nombres"] (@d["cedula"])  D</option>
+                                <option value="@d["cedula"]">@d["nombres"] (@d["cedula"])</option>
                             }
                         </select>
                     </div>
-     
-
+                
     
-    <div class="col-md-6 mb-3">
-        <label class="form-label">Fecha de inicio</label>
-        <input type="date" class="form-control" @bind="campoFechaInicio" />
-    </div>
-
+    
    
     <div class="col-md-6 mb-3">
-        <label class="form-label">Fecha Fin</label>
-        <input type="date" class="form-control" @bind="campoFechaFin" />
+        <label class="form-label">Tipo</label>
+        <input class="form-control" @bind="campoTipo" />
       </div>
     <div class="col-md-6 mb-3">
-        <label class="form-label">act_destacadas</label>
-        <input class="form-control" @bind="campoact_destacadas" />
+        <label class="form-label">Fecha</label>
+       <input type="date" class="form-control" @bind="campoFecha" />
     </div>
-                   
+    <div class="col-md-6 mb-3">
+        <label class="form-label">Institucion</label>
+        <input class="form-control" @bind="campoInstitucion" />
+    </div>
+                 <div class="col-md-6 mb-3">
+        <label class="form-label">nombre</label>
+        <input class="form-control" @bind="campoNombre" />
+    </div>  
+
+    <div class="col-md-6 mb-3">
+        <label class="form-label">ambito</label>
+        <input class="form-control" @bind="campoAmbito" />
+    </div>
                     
                 </div>
                 <button class="btn btn-success me-2" @onclick="GuardarRegistro">Guardar</button>
@@ -108,11 +103,13 @@
             <thead class="table-dark">
                 <tr>
                 
-<th>IdRed</th>
-<th>CedulaDocente</th>
-<th>fecha_inicio</th>
-<th>fecha_fin</th>
-<th>act_destacadas</th>
+<th>Id</th>
+<th>tipo</th>
+<th>fecha</th>
+<th>institucion</th>
+<th>nombre</th>
+<th>ambito</th>
+<th>docente</th>
   <th>Acciones</th>
 
                 </tr>
@@ -121,11 +118,15 @@
                 @foreach (var reg in registros)
                 {
                     <tr>
-                         <td>@ObtenerRed(reg["red"]?.ToString())</td>
+                         
+     
+        <td>@reg["id"]</td>
+        <td>@reg["tipo"]</td>
+        <td>@reg["fecha"]</td>
+           <td>@reg["institucion"]</td>
+             <td>@reg["nombre"]</td>
+                    <td>@reg["ambito"]</td>
         <td>@ObtenerDocente(reg["docente"]?.ToString())</td>
-        <td>@reg["fecha_inicio"]</td>
-        <td>@reg["fecha_fin"]</td>
-        <td>@reg["act_destacadas"]</td>
       
          
                         <td>
@@ -142,13 +143,13 @@
 
     @if (!cargando && !registros.Any())
     {
-        <div class="alert alert-warning">No se encontraron registros en la tabla RedDocente.</div>
+        <div class="alert alert-warning">No se encontraron registros en la tabla reconocimiento.</div>
     }
 </div>
 
 @code {
 
-    private List<Dictionary<string, object?>> redes = new();
+   
          private List<Dictionary<string, object?>> docentes = new();
         private List<Dictionary<string, object?>> registros = new();
 
@@ -158,17 +159,21 @@
     private string mensaje = string.Empty;
     private bool exito = false;
 
-   private string campoRed = string.Empty;
-private string campoDocente = string.Empty;
-private DateTime  campoFechaInicio ;
-private DateTime campoFechaFin ;
-private string  campoact_destacadas = string.Empty;
+   private string campoId = string.Empty;
+private string campoTipo = string.Empty;
+private DateTime  campoFecha ;
 
+private string  campoInstitucion = string.Empty;
+
+private string  campoNombre = string.Empty;
+
+private string  campoAmbito = string.Empty;
+private string  campoDocente = string.Empty;
     private int? limite = null;
 
     protected override async Task OnInitializedAsync()
     {
-        redes = await Api.ListarAsync("red");
+   
 
     docentes = await Api.ListarAsync("docente");
         await CargarRegistros();
@@ -177,17 +182,11 @@ private string  campoact_destacadas = string.Empty;
     private async Task CargarRegistros()
     {
         cargando = true;
-        registros = await Api.ListarAsync("red_docente");
+        registros = await Api.ListarAsync("reconocimiento");
         cargando = false;
     }
 
-    private string ObtenerRed(string? id)
-    {
-        if (string.IsNullOrEmpty(id)) return "Sin persona";
-        var redid = redes.FirstOrDefault(p => p["idr"]?.ToString() == id);
-        return redid?["idr"]?.ToString() ?? id;
-    }
-    private string ObtenerDocente(string? id)
+      private string ObtenerDocente(string? id)
     {
         if (string.IsNullOrEmpty(id)) return "Sin persona";
         var cedula_docente = docentes.FirstOrDefault(p => p["cedula"]?.ToString() == id);
@@ -200,11 +199,16 @@ private string  campoact_destacadas = string.Empty;
         editando = false;
           mostrarFormulario = true;
                mensaje = string.Empty;
-       campoRed = string.Empty;
- campoDocente = string.Empty;
-  campoFechaInicio = DateTime.Now;
- campoFechaFin = DateTime.Now;
-  campoact_destacadas = string.Empty;
+          campoId = string.Empty;
+  campoTipo = string.Empty;
+   campoFecha=DateTime.Now; 
+
+   campoInstitucion = string.Empty;
+
+   campoNombre = string.Empty;
+
+   campoAmbito = string.Empty;
+  campoDocente = string.Empty;
 
 
     }
@@ -213,21 +217,20 @@ private string  campoact_destacadas = string.Empty;
     {
         editando = true;
      
-campoRed = reg["red"]?.ToString() ?? "";
-campoDocente = reg["docente"]?.ToString() ?? "";
+campoId = reg["id"]?.ToString() ?? "";
+campoTipo = reg["tipo"]?.ToString() ?? "";
 
 
 
-campoFechaInicio = DateTime.TryParse(reg["fecha_inicio"]?.ToString(), out DateTime fn)
+campoFecha = DateTime.TryParse(reg["fecha"]?.ToString(), out DateTime fn)
     ? fn : DateTime.Now;
 
 
 
-campoFechaFin = DateTime.TryParse(reg["fecha_fin"]?.ToString(), out DateTime fa)
-    ? fa : DateTime.Now;
-
-campoact_destacadas = reg["act_destacadas"]?.ToString() ?? "";
-
+campoInstitucion = reg["institucion"]?.ToString() ?? "";
+campoNombre = reg["nombre"]?.ToString() ?? "";
+campoAmbito = reg["ambito"]?.ToString() ?? "";
+campoDocente = reg["docente"]?.ToString() ?? "";
 
 
         mostrarFormulario = true;
@@ -238,26 +241,28 @@ campoact_destacadas = reg["act_destacadas"]?.ToString() ?? "";
     {
         var datos = new Dictionary<string, object?>
         {
-          ["red"] = campoRed,
-    ["docente"] = campoDocente,
-    ["fecha_inicio"] = campoFechaInicio,
-    ["fecha_fin"] = campoFechaFin,
-    ["act_destacadas"] = campoact_destacadas,
+          
+    ["tipo"] = campoTipo,
+    ["fecha"] = campoFecha,
+    ["institucion"] = campoInstitucion,
+    ["nombre"] = campoNombre,
+    ["ambito"] = campoAmbito,
+    ["docente"] = campoDocente
   
 
         };
 
         if (editando)
         {
-            var confirmar = await JS.InvokeAsync<bool>("confirm", $"¿Está seguro de actualizar el Cliente #{campoDocente}?");
+            var confirmar = await JS.InvokeAsync<bool>("confirm", $"¿Está seguro de actualizar el Cliente #{campoId}?");
             if (!confirmar) return;
-            var resultado = await Api.ActualizarAsync("red_docente", "docente", campoDocente, datos);
+            var resultado = await Api.ActualizarAsync("reconocimiento", "id", campoId, datos);
             exito = resultado.exito;
             mensaje = resultado.mensaje;
         }
         else
         {
-            var resultado = await Api.CrearAsync("red_docente", datos);
+            var resultado = await Api.CrearAsync("reconocimiento", datos);
             exito = resultado.exito;
             mensaje = resultado.mensaje;
         }
@@ -271,10 +276,10 @@ campoact_destacadas = reg["act_destacadas"]?.ToString() ?? "";
 
     private async Task EliminarRegistro(Dictionary<string, object?> reg)
     {
-        string id = reg["docente"]?.ToString() ?? "";
+        string id = reg["id"]?.ToString() ?? "";
         var confirmar = await JS.InvokeAsync<bool>("confirm", $"¿Está seguro de eliminar el Cliente #{id}?");
         if (!confirmar) return;
-        var resultado = await Api.EliminarAsync("red_docente", "docente", id);
+        var resultado = await Api.EliminarAsync("reconocimiento", "id", id);
         exito = resultado.exito;
         mensaje = resultado.mensaje;
 
