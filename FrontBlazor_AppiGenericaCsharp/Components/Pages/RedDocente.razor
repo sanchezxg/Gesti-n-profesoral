@@ -1,0 +1,290 @@
+@page "/RedDocente"
+@rendermode InteractiveServer
+@inject FrontBlazor_AppiGenericaCsharp.Services.ApiService Api
+@inject IJSRuntime JS
+
+<PageTitle>RedDocentes</PageTitle>
+
+<div class="container mt-4">
+    <h3>RedDocentes</h3>
+
+    @* ───────── ALERTA ───────── *@
+    @if (!string.IsNullOrEmpty(mensaje))
+    {
+        <div class="alert @(exito ? "alert-success" : "alert-danger") alert-dismissible fade show">
+            @mensaje
+            <button type="button" class="btn-close" @onclick="() => mensaje = string.Empty"></button>
+        </div>
+    }
+
+    @* ───────── BOTON NUEVO ───────── *@
+    @if (!mostrarFormulario)
+    {
+        <button class="btn btn-primary mb-3" @onclick="NuevoRegistro">Nuevo RedDocente</button>
+    }
+
+    @* ───────── LIMITE DE REGISTROS ───────── *@
+    <div class="d-flex align-items-center mb-3">
+        <label class="form-label me-2 mb-0">Limite:</label>
+        <input class="form-control me-2" type="number" style="width:100px" @bind="limite" />
+        <button class="btn btn-outline-secondary" @onclick="CargarRegistros">Cargar</button>
+    </div>
+
+    @* ───────── FORMULARIO ───────── *@
+    @if (mostrarFormulario)
+    {
+        <div class="card mb-3">
+            <div class="card-header">
+                @(editando ? "Editar docente" : "Nuevo docente")
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    @if (editando)
+                    {
+                       
+                    }
+
+                     <div class="col-md-6 mb-3">
+                        <label class="form-label">id red</label>
+                        <select class="form-select" @bind="campoRed">
+                            <option value="">-- Seleccione --</option>
+                            @foreach (var r in redes)
+                            {
+                                <option value="@r["idr"]">@r["nombre"] (@r["idr"]) </option>
+                            }
+                        </select>
+                    </div>
+
+                    <div class="col-md-6 mb-3">
+                        <label class="form-label">Cedula docente</label>
+                        <select class="form-select" @bind="campoDocente">
+                            <option value="">-- Seleccione --</option>
+                            @foreach (var d in docentes)
+                            {
+                                <option value="@d["cedula"]">@d["nombres"] (@d["cedula"])  D</option>
+                            }
+                        </select>
+                    </div>
+     
+
+    
+    <div class="col-md-6 mb-3">
+        <label class="form-label">Fecha de inicio</label>
+        <input class="form-control" @bind="campoFechaInicio" />
+    </div>
+
+   
+    <div class="col-md-6 mb-3">
+        <label class="form-label">Fecha Fin</label>
+        <input class="form-control" @bind="campoFechaFin" />
+      </div>
+    <div class="col-md-6 mb-3">
+        <label class="form-label">act_destacadas</label>
+        <input class="form-control" @bind="campoact_destacadas" />
+    </div>
+                   
+                    
+                </div>
+                <button class="btn btn-success me-2" @onclick="GuardarRegistro">Guardar</button>
+                <button class="btn btn-secondary" @onclick="Cancelar">Cancelar</button>
+            </div>
+        </div>
+    }
+
+    @* ───────── SPINNER ───────── *@
+    @if (cargando)
+    {
+        <div class="d-flex justify-content-center my-4">
+            <div class="spinner-border text-primary" role="status">
+                <span class="visually-hidden">Cargando...</span>
+            </div>
+        </div>
+    }
+
+    @* ───────── TABLA ───────── *@
+    @if (!cargando && registros.Any())
+    {
+        <table class="table table-striped table-hover">
+            <thead class="table-dark">
+                <tr>
+                
+<th>IdRed</th>
+<th>CedulaDocente</th>
+<th>fecha_inicio</th>
+<th>fecha_fin</th>
+<th>Fecha Nacimiento</th>
+<th>act_destacadas</th>
+
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var reg in registros)
+                {
+                    <tr>
+                         <td>@ObtenerRed(reg["red"]?.ToString())</td>
+        <td>@ObtenerDocente(reg["docente"]?.ToString())</td>
+        <td>@reg["fecha_inicio"]</td>
+        <td>@reg["fecha_fin"]</td>
+        <td>@reg["act_destacadas"]</td>
+      
+         
+                        <td>
+                            <button class="btn btn-warning btn-sm me-1"
+                                    @onclick="() => EditarRegistro(reg)">Editar</button>
+                            <button class="btn btn-danger btn-sm"
+                                    @onclick="() => EliminarRegistro(reg)">Eliminar</button>
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    }
+
+    @if (!cargando && !registros.Any())
+    {
+        <div class="alert alert-warning">No se encontraron registros en la tabla cliente.</div>
+    }
+</div>
+
+@code {
+
+    private List<Dictionary<string, object?>> redes = new();
+         private List<Dictionary<string, object?>> docentes = new();
+        private List<Dictionary<string, object?>> registros = new();
+
+    private bool cargando = true;
+    private bool mostrarFormulario = false;
+    private bool editando = false;
+    private string mensaje = string.Empty;
+    private bool exito = false;
+
+   private string campoRed = string.Empty;
+private string campoDocente = string.Empty;
+private DateTime  campoFechaInicio ;
+private DateTime campoFechaFin ;
+private string  campoact_destacadas = string.Empty;
+
+    private int? limite = null;
+
+    protected override async Task OnInitializedAsync()
+    {
+        redes = await Api.ListarAsync("red");
+
+    docentes = await Api.ListarAsync("docente");
+        await CargarRegistros();
+    }
+
+    private async Task CargarRegistros()
+    {
+        cargando = true;
+        registros = await Api.ListarAsync("red_docente");
+        cargando = false;
+    }
+
+    private string ObtenerRed(string? id)
+    {
+        if (string.IsNullOrEmpty(id)) return "Sin persona";
+        var redid = redes.FirstOrDefault(p => p["idr"]?.ToString() == id);
+        return redid?["idr"]?.ToString() ?? id;
+    }
+    private string ObtenerDocente(string? id)
+    {
+        if (string.IsNullOrEmpty(id)) return "Sin persona";
+        var cedula_docente = docentes.FirstOrDefault(p => p["cedula"]?.ToString() == id);
+        return cedula_docente?["cedula"]?.ToString() ?? id;
+    }
+
+
+    private void NuevoRegistro()
+    {
+        editando = false;
+          mostrarFormulario = true;
+               mensaje = string.Empty;
+       campoRed = string.Empty;
+ campoDocente = string.Empty;
+  campoFechaInicio = DateTime.Now;
+ campoFechaFin = DateTime.Now;
+  campoact_destacadas = string.Empty;
+
+
+    }
+
+    private void EditarRegistro(Dictionary<string, object?> reg)
+    {
+        editando = true;
+     
+campoRed = reg["red"]?.ToString() ?? "";
+campoDocente = reg["docente"]?.ToString() ?? "";
+
+
+
+campoFechaInicio = DateTime.TryParse(reg["fecha_inicio"]?.ToString(), out DateTime fn)
+    ? fn : DateTime.Now;
+
+
+
+campoFechaFin = DateTime.TryParse(reg["fecha_fin"]?.ToString(), out DateTime fa)
+    ? fa : DateTime.Now;
+
+campoact_destacadas = reg["act_destacadas"]?.ToString() ?? "";
+
+
+
+        mostrarFormulario = true;
+        mensaje = string.Empty;
+    }
+
+    private async Task GuardarRegistro()
+    {
+        var datos = new Dictionary<string, object?>
+        {
+          ["red"] = campoRed,
+    ["docente"] = campoDocente,
+    ["fecha_inicio"] = campoFechaInicio,
+    ["fecha_fin"] = campoFechaFin,
+    ["act_destacadas"] = campoact_destacadas,
+  
+
+        };
+
+        if (editando)
+        {
+            var confirmar = await JS.InvokeAsync<bool>("confirm", $"¿Está seguro de actualizar el Cliente #{campoDocente}?");
+            if (!confirmar) return;
+            var resultado = await Api.ActualizarAsync("red_docente", "docente", campoDocente, datos);
+            exito = resultado.exito;
+            mensaje = resultado.mensaje;
+        }
+        else
+        {
+            var resultado = await Api.CrearAsync("red_docente", datos);
+            exito = resultado.exito;
+            mensaje = resultado.mensaje;
+        }
+
+        if (exito)
+        {
+            mostrarFormulario = false;
+            await CargarRegistros();
+        }
+    }
+
+    private async Task EliminarRegistro(Dictionary<string, object?> reg)
+    {
+        string id = reg["docente"]?.ToString() ?? "";
+        var confirmar = await JS.InvokeAsync<bool>("confirm", $"¿Está seguro de eliminar el Cliente #{id}?");
+        if (!confirmar) return;
+        var resultado = await Api.EliminarAsync("red_docente", "docente", id);
+        exito = resultado.exito;
+        mensaje = resultado.mensaje;
+
+        if (exito)
+            await CargarRegistros();
+    }
+
+    private void Cancelar()
+    {
+        mostrarFormulario = false;
+        mensaje = string.Empty;
+    }
+}
