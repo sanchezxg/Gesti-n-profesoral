@@ -1,11 +1,11 @@
-@page "/CrudRed"
+@page "/Linea_Investigacion"
 @rendermode InteractiveServer
 @inject FrontBlazor_AppiGenericaCsharp.Services.ApiService Api
 
-<PageTitle>red</PageTitle>
+<PageTitle>Linea Investigacion</PageTitle>
 
 <div class="container mt-4">
-    <h3>Red</h3>
+    <h3>Linea Investigacion</h3>
 
     @* ───────── ALERTA DE EXITO O ERROR ───────── *@
     @if (!string.IsNullOrEmpty(mensaje))
@@ -16,223 +16,263 @@
         </div>
     }
 
-    @* ───────── BOTON PARA MOSTRAR FORMULARIO DE CREAR ───────── *@
+    @* ───────── BOTON NUEVO ALIADO ───────── *@
     @if (!mostrarFormulario)
     {
-        <button class="btn btn-primary mb-3" @onclick="NuevoRegistro">Nueva Red</button>
+        <button class="btn btn-primary mb-3" @onclick="NuevoRegistro">Nueva Linea Investigacion</button>
     }
 
-    @* ───────── FORMULARIO (CREAR / EDITAR) ───────── *@
+    @* ───────── FORMULARIO CREAR / EDITAR ───────── *@
     @if (mostrarFormulario)
     {
         <div class="card mb-3">
             <div class="card-header">
-                @(editando ? "Editar Producto" : "Nuevo Producto")
+                @(editando ? "Editar linea investigacion" : "Nuevo linea investigacion")
             </div>
+
             <div class="card-body">
+
                 <div class="row">
+
+                    
+
                     <div class="col-md-6 mb-3">
-                        <label class="form-label">Codigo</label>
-                        <input class="form-control" @bind="campoCodigo" disabled="@editando" />
+                        <label class="form-label">nombre</label>
+                        <input class="form-control" @bind="campoNombre"/>
                     </div>
+
                     <div class="col-md-6 mb-3">
-                        <label class="form-label">Nombre</label>
-                        <input class="form-control" @bind="campoNombre" />
+                        <label class="form-label">Descripcion</label>
+                        <input class="form-control" @bind="campoDescripcion"/>
                     </div>
-                    <div class="col-md-6 mb-3">
-                        <label class="form-label">Url</label>
-                        <input class="form-control"  @bind="campoUrl" />
-                    </div>
-                    <div class="col-md-6 mb-3">
-                        <label class="form-label">Pais</label>
-                        <input class="form-control"  @bind="campoPais" />
-                    </div>
+
+                    
+
                 </div>
+
                 <button class="btn btn-success me-2" @onclick="GuardarRegistro">Guardar</button>
                 <button class="btn btn-secondary" @onclick="Cancelar">Cancelar</button>
+
             </div>
         </div>
     }
 
-    @* ───────── SPINNER DE CARGA ───────── *@
+    @* ───────── SPINNER ───────── *@
     @if (cargando)
     {
         <div class="d-flex justify-content-center my-4">
-            <div class="spinner-border text-primary" role="status">
-                <span class="visually-hidden">Cargando...</span>
-            </div>
+            <div class="spinner-border text-primary"></div>
         </div>
     }
 
-    @* ───────── TABLA DE REGISTROS ───────── *@
+    @* ───────── TABLA DE ALIADOS ───────── *@
     @if (!cargando && registros.Any())
     {
         <table class="table table-striped table-hover">
+
             <thead class="table-dark">
                 <tr>
-                    <th>Codigo</th>
-                    <th>Nombre</th>
-                    <th>Url</th>
-                    <th>Pais</th>
-                   
+                    <th>id</th>
+                    <th>nombre</th>
+                    <th>descripcion</th>
+                      <th>Acciones</th>
+                    
                 </tr>
             </thead>
+
             <tbody>
+
                 @foreach (var reg in registros)
                 {
                     <tr>
-                        <td>@reg["idr"]</td>
+
+                        <td>@reg["id"]</td>
                         <td>@reg["nombre"]</td>
-                        <td>@reg["url"]</td>
-                        <td>@reg["pais"]</td>
+                        <td>@reg["descripcion"]</td>
+                       
+
                         <td>
+
                             <button class="btn btn-warning btn-sm me-1"
                                     @onclick="() => EditarRegistro(reg)">
                                 Editar
                             </button>
+
                             <button class="btn btn-danger btn-sm"
                                     @onclick="() => EliminarRegistro(reg)">
                                 Eliminar
                             </button>
+
                         </td>
+
                     </tr>
                 }
+
             </tbody>
+
         </table>
     }
 
-    @* ───────── MENSAJE CUANDO NO HAY DATOS ───────── *@
+    @* ───────── MENSAJE SIN DATOS ───────── *@
     @if (!cargando && !registros.Any())
     {
-        <div class="alert alert-warning">No se encontraron registros en la tabla producto.</div>
+        <div class="alert alert-warning">
+            No se encontraron registros en la tabla linea investigacion.
+        </div>
     }
+
 </div>
 
 @code {
-    // ───────── VARIABLES DE ESTADO ─────────
 
-    // Lista de registros obtenidos de la API
+    // ───────── VARIABLES ─────────
+
     private List<Dictionary<string, object?>> registros = new();
 
-    // Controla si se muestra el spinner de carga
     private bool cargando = true;
 
-    // Controla si se muestra el formulario
     private bool mostrarFormulario = false;
 
-    // Indica si estamos editando (true) o creando (false)
     private bool editando = false;
 
-    // Mensaje de alerta para el usuario
     private string mensaje = string.Empty;
 
-    // Indica si la ultima operacion fue exitosa (para color de alerta)
     private bool exito = false;
 
-    // Campos del formulario
-    private string campoCodigo = string.Empty;
+
+    // CAMPOS FORMULARIO
+
+    private long campoid;
+
     private string campoNombre = string.Empty;
-    private string campoUrl = string.Empty;
-      private string  campoPais = string.Empty;
+
+    private string campoDescripcion = string.Empty;
+
+
+
 
     // ───────── CICLO DE VIDA ─────────
 
-    // Se ejecuta al cargar la pagina por primera vez
     protected override async Task OnInitializedAsync()
     {
         await CargarRegistros();
     }
 
+
     // ───────── METODOS ─────────
 
-    // Obtiene todos los registros de la tabla producto
     private async Task CargarRegistros()
     {
         cargando = true;
-        registros = await Api.ListarAsync("red");
+
+        registros = await Api.ListarAsync("linea_investigacion");
+
         cargando = false;
     }
 
-    // Muestra el formulario vacio para crear un nuevo registro
+
     private void NuevoRegistro()
     {
         editando = false;
-        campoCodigo = string.Empty;
-        campoNombre = string.Empty;
-        campoUrl = string.Empty;
-        campoPais = string.Empty;
+
+        campoid = 0;
+        campoNombre = "";
+        campoDescripcion = "";
+      
+
         mostrarFormulario = true;
+
         mensaje = string.Empty;
     }
 
-    // Llena el formulario con los datos del registro seleccionado
+
     private void EditarRegistro(Dictionary<string, object?> reg)
     {
         editando = true;
-        campoCodigo = reg["idr"]?.ToString() ?? "";
+
+        campoid = long.TryParse(reg["id"]?.ToString(), out long n) ? n : 0;
+
         campoNombre = reg["nombre"]?.ToString() ?? "";
-        campoUrl = reg["url"]?.ToString() ?? "";
-        campoPais = reg["pais"]?.ToString() ?? "";;
+
+        campoDescripcion = reg["descripcion"]?.ToString() ?? "";
+
+       
+
         mostrarFormulario = true;
+
         mensaje = string.Empty;
     }
 
-    // Crea o actualiza un registro segun el modo (editando o creando)
+
     private async Task GuardarRegistro()
     {
-        // Arma el diccionario con los datos del formulario
         var datos = new Dictionary<string, object?>
         {
-            ["idr"] = campoCodigo,
+           
             ["nombre"] = campoNombre,
-            ["url"] = campoUrl,
-            ["pais"] = campoPais
+            ["descripcion"] = campoDescripcion,
+          
         };
 
         if (editando)
         {
-            // PUT /api/producto/codigo/{valor}
-            // No incluimos el codigo en los datos porque es la clave
-            datos.Remove("idr");
-            var resultado = await Api.ActualizarAsync("red", "idr", campoCodigo, datos);
+            datos.Remove("id");
+
+            var resultado = await Api.ActualizarAsync(
+                "linea_investigacion",
+                "id",
+                campoid.ToString(),
+                datos
+            );
+
             exito = resultado.exito;
+
             mensaje = resultado.mensaje;
         }
         else
         {
-            // POST /api/producto
-            var resultado = await Api.CrearAsync("red", datos);
+            var resultado = await Api.CrearAsync("linea_investigacion", datos);
+
             exito = resultado.exito;
+
             mensaje = resultado.mensaje;
         }
 
         if (exito)
         {
             mostrarFormulario = false;
-            await CargarRegistros(); // Recargar la tabla
+
+            await CargarRegistros();
         }
     }
 
-    // Elimina un registro despues de confirmacion
+
     private async Task EliminarRegistro(Dictionary<string, object?> reg)
     {
-        string codigo = reg["idr"]?.ToString() ?? "";
+        string id = reg["id"]?.ToString() ?? "";
 
-        // DELETE /api/producto/codigo/{valor}
-        var resultado = await Api.EliminarAsync("red", "idr", codigo);
+        var resultado = await Api.EliminarAsync(
+            "linea_investigacion",
+            "id",
+            id
+        );
+
         exito = resultado.exito;
+
         mensaje = resultado.mensaje;
 
         if (exito)
         {
-            await CargarRegistros(); // Recargar la tabla
+            await CargarRegistros();
         }
     }
 
-    // Oculta el formulario sin guardar
+
     private void Cancelar()
     {
         mostrarFormulario = false;
+
         mensaje = string.Empty;
     }
+
 }

@@ -10,6 +10,7 @@ using Microsoft.Extensions.Configuration;     // Permite leer appsettings.*.json
 using System;                                  // Para InvalidOperationException
 using ApiGenericaCsharp.Servicios.Abstracciones;   // Para IProveedorConexion
 
+
 namespace ApiGenericaCsharp.Servicios.Conexion
 {
    /// <summary>

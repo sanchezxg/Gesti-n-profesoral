@@ -1,0 +1,201 @@
+@page "/red"
+@rendermode InteractiveServer
+@inject FrontBlazor_AppiGenericaCsharp.Services.ApiService Api
+
+<PageTitle>Red</PageTitle>
+
+<div class="container mt-4">
+    <h3>Redes</h3>
+
+    @if (!string.IsNullOrEmpty(mensaje))
+    {
+        <div class="alert @(exito ? "alert-success" : "alert-danger")">
+            @mensaje
+        </div>
+    }
+
+    <button class="btn btn-primary mb-3" @onclick="NuevoRegistro">Nueva Red</button>
+
+    @if (mostrarFormulario)
+    {
+        <div class="card mb-3">
+            <div class="card-body">
+
+                <div class="mb-2">
+                    <label>ID</label>
+                    <input class="form-control" type="number" @bind="campoId"/>
+                </div>
+
+                <div class="mb-2">
+                    <label>Nombre</label>
+                    <input class="form-control" @bind="campoNombre"/>
+                </div>
+
+                <div class="mb-2">
+                    <label>URL</label>
+                    <input class="form-control" @bind="campoUrl"/>
+                </div>
+
+                <div class="mb-2">
+                    <label>País</label>
+                    <input class="form-control" @bind="campoPais"/>
+                </div>
+
+                <button class="btn btn-success me-2" @onclick="Guardar">Guardar</button>
+                <button class="btn btn-secondary" @onclick="Cancelar">Cancelar</button>
+
+            </div>
+        </div>
+    }
+
+    <table class="table table-striped">
+        <thead>
+            <tr>
+                <th>ID</th>
+                <th>Nombre</th>
+                <th>URL</th>
+                <th>País</th>
+                <th>Acciones</th>
+            </tr>
+        </thead>
+
+        <tbody>
+            @foreach (var reg in registros)
+            {
+                <tr>
+                    <td>@reg["idr"]</td>
+                    <td>@reg["nombre"]</td>
+                    <td>@reg["url"]</td>
+                    <td>@reg["pais"]</td>
+
+                    <td>
+                        <button class="btn btn-warning btn-sm"
+                                @onclick="() => Editar(reg)">
+                            Editar
+                        </button>
+
+                        <button class="btn btn-danger btn-sm"
+                                @onclick="() => Eliminar(reg)">
+                            Eliminar
+                        </button>
+                    </td>
+                </tr>
+            }
+        </tbody>
+    </table>
+
+</div>
+
+@code {
+
+    private List<Dictionary<string, object?>> registros = new();
+
+    private bool mostrarFormulario = false;
+    private bool editando = false;
+
+    private string mensaje = "";
+    private bool exito = false;
+
+    private int campoId = 0;
+    private string campoNombre = "";
+    private string campoUrl = "";
+    private string campoPais = "";
+
+    private int idEditar = 0;
+
+    protected override async Task OnInitializedAsync()
+    {
+        await Cargar();
+    }
+
+    private async Task Cargar()
+    {
+        registros = await Api.ListarAsync("red");
+    }
+
+    private void NuevoRegistro()
+    {
+        editando = false;
+        mostrarFormulario = true;
+
+        campoId = 0;
+        campoNombre = "";
+        campoUrl = "";
+        campoPais = "";
+    }
+
+    private void Editar(Dictionary<string, object?> reg)
+    {
+        editando = true;
+        mostrarFormulario = true;
+
+        idEditar = int.Parse(reg["idr"]!.ToString()!);
+
+        campoId = idEditar;
+        campoNombre = reg["nombre"]?.ToString() ?? "";
+        campoUrl = reg["url"]?.ToString() ?? "";
+        campoPais = reg["pais"]?.ToString() ?? "";
+    }
+
+    private async Task Guardar()
+    {
+        var datos = new Dictionary<string, object?>
+        {
+            ["idr"] = campoId,
+            ["nombre"] = campoNombre,
+            ["url"] = campoUrl,
+            ["pais"] = campoPais
+        };
+
+        if (editando)
+        {
+            var resultado = await Api.ActualizarAsync(
+                "red",
+                "idr",
+                idEditar.ToString(),
+                datos
+            );
+
+            mensaje = resultado.mensaje;
+            exito = resultado.exito;
+        }
+        else
+        {
+            var resultado = await Api.CrearAsync("red", datos);
+
+            mensaje = resultado.mensaje;
+            exito = resultado.exito;
+        }
+
+        if (exito)
+        {
+            mostrarFormulario = false;
+            await Cargar();
+        }
+    }
+
+    private async Task Eliminar(Dictionary<string, object?> reg)
+    {
+        int id = int.Parse(reg["idr"]!.ToString()!);
+
+        var resultado = await Api.EliminarAsync(
+            "red",
+            "idr",
+            id.ToString()
+        );
+
+        mensaje = resultado.mensaje;
+        exito = resultado.exito;
+
+        if (exito)
+        {
+            await Cargar();
+        }
+    }
+
+    private void Cancelar()
+    {
+        mostrarFormulario = false;
+    }
+
+}
