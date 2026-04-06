@@ -1,0 +1,151 @@
+@page "/beca"
+@rendermode InteractiveServer
+@inject FrontBlazor_AppiGenericaCsharp.Services.ApiService Api
+
+<PageTitle>Becas de Estudio</PageTitle>
+
+<div class="container mt-4">
+    <h3>Gestión de Becas</h3>
+
+    @if (!string.IsNullOrEmpty(mensaje))
+    {
+        <div class="alert @(exito ? "alert-success" : "alert-danger") alert-dismissible fade show">
+            @mensaje
+            <button type="button" class="btn-close" @onclick="() => mensaje = string.Empty"></button>
+        </div>
+    }
+
+    @if (!mostrarFormulario)
+    {
+        <button class="btn btn-primary mb-3" @onclick="NuevoRegistro">Agregar Nueva Beca</button>
+    }
+
+    @if (mostrarFormulario)
+    {
+        <div class="card mb-3 shadow">
+            <div class="card-header bg-primary text-white">@(editando ? "Editar Beca" : "Nueva Beca")</div>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-4 mb-3">
+                        <label class="form-label">ID del Estudio (Relacionado)</label>
+                        <input class="form-control" type="number" @bind="campoEstudios" disabled="@editando" placeholder="Ej: 1" />
+                    </div>
+                    <div class="col-md-4 mb-3">
+                        <label class="form-label">Tipo de Beca</label>
+                        <input class="form-control" @bind="campoTipo" placeholder="Ej: Crédito Condonable" />
+                    </div>
+                    <div class="col-md-4 mb-3">
+                        <label class="form-label">Institución Otorgante</label>
+                        <input class="form-control" @bind="campoInstitucion" placeholder="Ej: ICETEX" />
+                    </div>
+                    <div class="col-md-6 mb-3">
+                        <label class="form-label">Fecha de Inicio</label>
+                        <input class="form-control" type="date" @bind="campoFechaInicio" />
+                    </div>
+                    <div class="col-md-6 mb-3">
+                        <label class="form-label">Fecha de Finalización</label>
+                        <input class="form-control" type="date" @bind="campoFechaFin" />
+                    </div>
+                </div>
+                <div class="mt-2">
+                    <button class="btn btn-success me-2" @onclick="GuardarRegistro">Guardar Beca</button>
+                    <button class="btn btn-secondary" @onclick="Cancelar">Cancelar</button>
+                </div>
+            </div>
+        </div>
+    }
+
+    @if (cargando)
+    {
+        <div class="d-flex justify-content-center my-4"><div class="spinner-border text-primary"></div></div>
+    }
+    else
+    {
+        <table class="table table-striped table-hover mt-3">
+            <thead class="table-dark">
+                <tr>
+                    <th>ID Estudio</th>
+                    <th>Tipo</th>
+                    <th>Institución</th>
+                    <th>Inicio</th>
+                    <th>Fin</th>
+                    <th>Acciones</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var reg in registros)
+                {
+                    <tr>
+                        <td>@reg["estudios"]</td>
+                        <td>@reg["tipo"]</td>
+                        <td>@reg["institucion"]</td>
+                        <td>@Convert.ToDateTime(reg["fecha_inicio"]).ToShortDateString()</td>
+                        <td>@Convert.ToDateTime(reg["fecha_fin"]).ToShortDateString()</td>
+                        <td>
+                            <button class="btn btn-warning btn-sm" @onclick="() => EditarRegistro(reg)">Editar</button>
+                            <button class="btn btn-danger btn-sm" @onclick="() => EliminarRegistro(reg)">Eliminar</button>
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    }
+</div>
+
+@code {
+    private List<Dictionary<string, object?>> registros = new();
+    private bool cargando = true, mostrarFormulario = false, editando = false, exito = false;
+    private string mensaje = "";
+
+    private int campoEstudios;
+    private string campoTipo = "", campoInstitucion = "";
+    private DateTime campoFechaInicio = DateTime.Now, campoFechaFin = DateTime.Now;
+
+    protected override async Task OnInitializedAsync() => await CargarRegistros();
+
+    private async Task CargarRegistros() {
+        cargando = true;
+        registros = await Api.ListarAsync("beca");
+        cargando = false;
+    }
+
+    private void NuevoRegistro() {
+        editando = false; campoEstudios = 0; campoTipo = ""; campoInstitucion = "";
+        campoFechaInicio = DateTime.Now; campoFechaFin = DateTime.Now;
+        mostrarFormulario = true; mensaje = "";
+    }
+
+    private void EditarRegistro(Dictionary<string, object?> reg) {
+        editando = true;
+        campoEstudios = int.Parse(reg["estudios"]?.ToString() ?? "0");
+        campoTipo = reg["tipo"]?.ToString() ?? "";
+        campoInstitucion = reg["institucion"]?.ToString() ?? "";
+        campoFechaInicio = DateTime.TryParse(reg["fecha_inicio"]?.ToString(), out var fi) ? fi : DateTime.Now;
+        campoFechaFin = DateTime.TryParse(reg["fecha_fin"]?.ToString(), out var ff) ? ff : DateTime.Now;
+        mostrarFormulario = true;
+    }
+
+    private async Task GuardarRegistro() {
+        var datos = new Dictionary<string, object?> {
+            ["estudios"] = campoEstudios,
+            ["tipo"] = campoTipo,
+            ["institucion"] = campoInstitucion,
+            ["fecha_inicio"] = campoFechaInicio.ToString("yyyy-MM-dd"),
+            ["fecha_fin"] = campoFechaFin.ToString("yyyy-MM-dd")
+        };
+
+        var res = editando 
+            ? await Api.ActualizarAsync("beca", "estudios", campoEstudios.ToString(), datos)
+            : await Api.CrearAsync("beca", datos);
+
+        exito = res.exito; mensaje = res.mensaje;
+        if (exito) { mostrarFormulario = false; await CargarRegistros(); }
+    }
+
+    private async Task EliminarRegistro(Dictionary<string, object?> reg) {
+        var res = await Api.EliminarAsync("beca", "estudios", reg["estudios"]?.ToString() ?? "");
+        if (res.exito) await CargarRegistros();
+    }
+
+    private void Cancelar() => mostrarFormulario = false;
+}

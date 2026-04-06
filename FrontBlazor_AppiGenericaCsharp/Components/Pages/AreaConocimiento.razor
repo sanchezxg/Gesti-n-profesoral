@@ -4,6 +4,30 @@
 
 <PageTitle>Áreas de Conocimiento</PageTitle>
 
+@code {
+    // ... variables ...
+
+    private async Task GuardarRegistro() {
+        var datos = new Dictionary<string, object?> {
+            // El campo "id" se omite para que la DB lo incremente
+            ["gran_area"] = campoGranArea,
+            ["area"] = campoArea,
+            ["disciplina"] = campoDisciplina
+        };
+
+        if (editando) {
+            // Usamos campoId solo para la ruta del UPDATE
+            var res = await Api.ActualizarAsync("area_conocimiento", "id", campoId.ToString(), datos);
+            exito = res.exito; mensaje = res.mensaje;
+        }
+        else {
+            var res = await Api.CrearAsync("area_conocimiento", datos);
+            exito = res.exito; mensaje = res.mensaje;
+        }
+
+        if (exito) { mostrarFormulario = false; await CargarRegistros(); }
+    }
+}
 <div class="container mt-4">
     <h3>Catálogo: Áreas de Conocimiento</h3>
 
@@ -114,22 +138,6 @@
         mostrarFormulario = true;
     }
 
-    private async Task GuardarRegistro() {
-        var datos = new Dictionary<string, object?> {
-            ["id"] = campoId,
-            ["gran_area"] = campoGranArea,
-            ["area"] = campoArea,
-            ["disciplina"] = campoDisciplina
-        };
-
-        // El servicio genérico usa el nombre de la tabla y la PK para procesar
-        var res = editando 
-            ? await Api.ActualizarAsync("area_conocimiento", "id", campoId.ToString(), datos)
-            : await Api.CrearAsync("area_conocimiento", datos);
-
-        exito = res.exito; mensaje = res.mensaje;
-        if (exito) { mostrarFormulario = false; await CargarRegistros(); }
-    }
 
     private async Task EliminarRegistro(Dictionary<string, object?> reg) {
         var res = await Api.EliminarAsync("area_conocimiento", "id", reg["id"]?.ToString() ?? "");
