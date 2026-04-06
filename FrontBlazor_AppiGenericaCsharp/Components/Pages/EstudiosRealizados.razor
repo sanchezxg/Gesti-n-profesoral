@@ -1,0 +1,195 @@
+@page "/estudios-realizados"
+@rendermode InteractiveServer
+@inject FrontBlazor_AppiGenericaCsharp.Services.ApiService Api
+
+<PageTitle>Estudios Realizados</PageTitle>
+
+<div class="container mt-4">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h3 class="text-primary"><i class="bi bi-mortarboard-fill"></i> Registro de Estudios Realizados</h3>
+        <button class="btn btn-success" @onclick="NuevoRegistro">
+            <i class="bi bi-plus-circle"></i> Agregar Estudio
+        </button>
+    </div>
+
+    @* Formulario Completo *@
+    @if (mostrarFormulario)
+    {
+        <div class="card mb-4 shadow border-primary">
+            <div class="card-header bg-primary text-white">
+                <i class="bi bi-pencil-square"></i> @(editando ? "Modificar Registro" : "Nuevo Registro")
+            </div>
+            <div class="card-body bg-light">
+                <div class="row g-3">
+                    <div class="col-md-6">
+                        <label class="form-label fw-bold">Título</label>
+                        <input class="form-control" @bind="campoTitulo" placeholder="Ej: Especialista en Redes" />
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label fw-bold">Universidad</label>
+                        <input class="form-control" @bind="campoUniversidad" />
+                    </div>
+                    <div class="col-md-4">
+                        <label class="form-label fw-bold">Cédula Docente</label>
+                        <input class="form-control" type="number" @bind="campoDocente" />
+                    </div>
+                    <div class="col-md-4">
+                        <label class="form-label fw-bold">Fecha</label>
+                        <input class="form-control" type="date" @bind="campoFecha" />
+                    </div>
+                    <div class="col-md-4">
+                        <label class="form-label fw-bold">Tipo</label>
+                        <select class="form-select" @bind="campoTipo">
+                            <option value="Pregrado">Pregrado</option>
+                            <option value="Posgrado">Posgrado</option>
+                            <option value="Maestría">Maestría</option>
+                            <option value="Doctorado">Doctorado</option>
+                        </select>
+                    </div>
+                    <div class="col-md-4">
+                        <label class="form-label fw-bold">Metodología</label>
+                        <input class="form-control" @bind="campoMetodologia" placeholder="Presencial/Virtual" />
+                    </div>
+                    <div class="col-md-4">
+                        <label class="form-label fw-bold">Ciudad</label>
+                        <input class="form-control" @bind="campoCiudad" />
+                    </div>
+                    <div class="col-md-4">
+                        <label class="form-label fw-bold">País</label>
+                        <input class="form-control" @bind="campoPais" />
+                    </div>
+                    <div class="col-md-12">
+                        <label class="form-label fw-bold">Perfil del Egresado</label>
+                        <textarea class="form-control" rows="2" @bind="campoPerfil"></textarea>
+                    </div>
+                    <div class="col-md-12">
+                        <div class="form-check form-switch p-3 bg-white border rounded shadow-sm">
+                            <input class="form-check-input ms-0 me-2" type="checkbox" @bind="campoAcreditada">
+                            <label class="form-check-label fw-bold">¿La Institución es Acreditada?</label>
+                        </div>
+                    </div>
+                </div>
+                <div class="mt-4 text-end">
+                    <button class="btn btn-primary px-4 shadow" @onclick="GuardarRegistro">Guardar</button>
+                    <button class="btn btn-secondary px-4 shadow" @onclick="() => mostrarFormulario = false">Cancelar</button>
+                </div>
+            </div>
+        </div>
+    }
+
+    @* Tabla de Datos Visual con lógica de Acreditación *@
+    <div class="table-responsive shadow-lg rounded">
+        <table class="table table-hover align-middle bg-white mb-0">
+            <thead class="table-dark">
+                <tr>
+                    <th>Información Básica</th>
+                    <th>Tipo y Metodología</th>
+                    <th>Ubicación</th>
+                    <th class="text-center">Acreditación</th>
+                    <th class="text-center">Acciones</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var r in registros)
+                {
+                    <tr>
+                        <td>
+                            <div class="fw-bold text-primary">@r["titulo"]</div>
+                            <small class="text-muted"><i class="bi bi-bank"></i> @r["universidad"]</small><br />
+                            <small class="badge bg-light text-dark border">CC: @r["docente"]</small>
+                        </td>
+                        <td>
+                            <div>@r["tipo"]</div>
+                            <small class="text-secondary">Mod: @r["metodologia"]</small>
+                        </td>
+                        <td>
+                            <div>@r["ciudad"]</div>
+                            <small>@r["pais"]</small>
+                        </td>
+                        <td class="text-center">
+                            @if (Convert.ToBoolean(r["ins_acreditada"]))
+                            {
+                                <span class="badge bg-success p-2">
+                                    <i class="bi bi-patch-check-fill"></i> ACREDITADA
+                                </span>
+                            }
+                            else
+                            {
+                                <span class="badge bg-danger p-2">
+                                    <i class="bi bi-patch-exclamation-fill"></i> NO ACREDITADA
+                                </span>
+                            }
+                        </td>
+                        <td class="text-center">
+                            <div class="btn-group gap-1">
+                                <button class="btn btn-outline-warning btn-sm border-0" @onclick="() => EditarRegistro(r)" title="Editar">
+                                    <i class="bi bi-pencil-fill fs-5"></i>
+                                </button>
+                                <button class="btn btn-outline-danger btn-sm border-0" @onclick="() => EliminarRegistro(r)" title="Eliminar">
+                                    <i class="bi bi-trash3-fill fs-5"></i>
+                                </button>
+                            </div>
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+</div>
+
+@code {
+    private List<Dictionary<string, object?>> registros = new();
+    private bool mostrarFormulario = false, editando = false;
+
+    // Campos vinculados a la base de datos
+    private int campoId, campoDocente;
+    private string campoTitulo = "", campoUniversidad = "", campoTipo = "Pregrado", campoMetodologia = "", campoPerfil = "", campoCiudad = "", campoPais = "Colombia";
+    private bool campoAcreditada = false;
+    private DateTime campoFecha = DateTime.Now;
+
+    protected override async Task OnInitializedAsync() => await CargarRegistros();
+    private async Task CargarRegistros() => registros = await Api.ListarAsync("estudios_realizados");
+
+    private void NuevoRegistro() {
+        editando = false; campoTitulo = ""; campoUniversidad = ""; campoMetodologia = ""; campoPerfil = ""; 
+        campoCiudad = ""; campoPais = "Colombia"; campoAcreditada = false; mostrarFormulario = true;
+    }
+
+    private void EditarRegistro(Dictionary<string, object?> r) {
+        editando = true;
+        campoId = int.Parse(r["id"]?.ToString() ?? "0");
+        campoTitulo = r["titulo"]?.ToString() ?? "";
+        campoDocente = int.Parse(r["docente"]?.ToString() ?? "0");
+        campoUniversidad = r["universidad"]?.ToString() ?? "";
+        campoMetodologia = r["metodologia"]?.ToString() ?? "";
+        campoPerfil = r["perfil_egresado"]?.ToString() ?? "";
+        campoCiudad = r["ciudad"]?.ToString() ?? "";
+        campoPais = r["pais"]?.ToString() ?? "";
+        campoAcreditada = Convert.ToBoolean(r["ins_acreditada"]);
+        campoFecha = DateTime.TryParse(r["fecha"]?.ToString(), out var f) ? f : DateTime.Now;
+        mostrarFormulario = true;
+    }
+
+    private async Task GuardarRegistro() {
+        var d = new Dictionary<string, object?> {
+            ["titulo"] = campoTitulo,
+            ["universidad"] = campoUniversidad,
+            ["fecha"] = campoFecha.ToString("yyyy-MM-dd"),
+            ["tipo"] = campoTipo,
+            ["ciudad"] = campoCiudad,
+            ["docente"] = campoDocente,
+            ["ins_acreditada"] = campoAcreditada ? 1 : 0,
+            ["metodologia"] = campoMetodologia,
+            ["perfil_egresado"] = campoPerfil,
+            ["pais"] = campoPais
+        };
+        if (editando) await Api.ActualizarAsync("estudios_realizados", "id", campoId.ToString(), d);
+        else await Api.CrearAsync("estudios_realizados", d);
+        mostrarFormulario = false; await CargarRegistros();
+    }
+
+    private async Task EliminarRegistro(Dictionary<string, object?> r) {
+        await Api.EliminarAsync("estudios_realizados", "id", r["id"]?.ToString() ?? "");
+        await CargarRegistros();
+    }
+}

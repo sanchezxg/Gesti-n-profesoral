@@ -1,0 +1,149 @@
+@page "/area-conocimiento"
+@rendermode InteractiveServer
+@inject FrontBlazor_AppiGenericaCsharp.Services.ApiService Api
+
+<PageTitle>Áreas de Conocimiento</PageTitle>
+
+@code {
+    // ... variables ...
+
+    private async Task GuardarRegistro() {
+        var datos = new Dictionary<string, object?> {
+            // El campo "id" se omite para que la DB lo incremente
+            ["gran_area"] = campoGranArea,
+            ["area"] = campoArea,
+            ["disciplina"] = campoDisciplina
+        };
+
+        if (editando) {
+            // Usamos campoId solo para la ruta del UPDATE
+            var res = await Api.ActualizarAsync("area_conocimiento", "id", campoId.ToString(), datos);
+            exito = res.exito; mensaje = res.mensaje;
+        }
+        else {
+            var res = await Api.CrearAsync("area_conocimiento", datos);
+            exito = res.exito; mensaje = res.mensaje;
+        }
+
+        if (exito) { mostrarFormulario = false; await CargarRegistros(); }
+    }
+}
+<div class="container mt-4">
+    <h3>Catálogo: Áreas de Conocimiento</h3>
+
+    @* Mensajes de retroalimentación *@
+    @if (!string.IsNullOrEmpty(mensaje))
+    {
+        <div class="alert @(exito ? "alert-success" : "alert-danger") alert-dismissible fade show">
+            @mensaje
+            <button type="button" class="btn-close" @onclick="() => mensaje = string.Empty"></button>
+        </div>
+    }
+
+    @if (!mostrarFormulario)
+    {
+        <button class="btn btn-primary mb-3" @onclick="NuevoRegistro">Nueva Área</button>
+    }
+
+    @* Formulario de captura *@
+    @if (mostrarFormulario)
+    {
+        <div class="card mb-3">
+            <div class="card-header">@(editando ? "Editar Área" : "Nueva Área")</div>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-2 mb-3">
+                        <label>ID</label>
+                        <input class="form-control" type="number" @bind="campoId" disabled="@editando"/>
+                    </div>
+                    <div class="col-md-3 mb-3">
+                        <label>Gran Área</label>
+                        <input class="form-control" @bind="campoGranArea" placeholder="Ej: Ciencias Naturales"/>
+                    </div>
+                    <div class="col-md-3 mb-3">
+                        <label>Área</label>
+                        <input class="form-control" @bind="campoArea" placeholder="Ej: Matemáticas"/>
+                    </div>
+                    <div class="col-md-4 mb-3">
+                        <label>Disciplina</label>
+                        <input class="form-control" @bind="campoDisciplina" placeholder="Ej: Estadística"/>
+                    </div>
+                </div>
+                <button class="btn btn-success me-2" @onclick="GuardarRegistro">Guardar</button>
+                <button class="btn btn-secondary" @onclick="Cancelar">Cancelar</button>
+            </div>
+        </div>
+    }
+
+    @* Tabla de datos *@
+    @if (cargando)
+    {
+        <div class="d-flex justify-content-center my-4"><div class="spinner-border text-primary"></div></div>
+    }
+    else
+    {
+        <table class="table table-hover">
+            <thead class="table-dark">
+                <tr>
+                    <th>ID</th><th>Gran Área</th><th>Área</th><th>Disciplina</th><th>Acciones</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var reg in registros)
+                {
+                    <tr>
+                        <td>@reg["id"]</td>
+                        <td>@reg["gran_area"]</td>
+                        <td>@reg["area"]</td>
+                        <td>@reg["disciplina"]</td>
+                        <td>
+                            <button class="btn btn-warning btn-sm" @onclick="() => EditarRegistro(reg)">Editar</button>
+                            <button class="btn btn-danger btn-sm" @onclick="() => EliminarRegistro(reg)">Eliminar</button>
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    }
+</div>
+
+@code {
+    private List<Dictionary<string, object?>> registros = new();
+    private bool cargando = true, mostrarFormulario = false, editando = false, exito = false;
+    private string mensaje = "";
+
+    // Campos de la tabla area_conocimiento
+    private int campoId;
+    private string campoGranArea = "", campoArea = "", campoDisciplina = "";
+
+    protected override async Task OnInitializedAsync() => await CargarRegistros();
+
+    private async Task CargarRegistros() {
+        cargando = true;
+        registros = await Api.ListarAsync("area_conocimiento");
+        cargando = false;
+    }
+
+    private void NuevoRegistro() {
+        editando = false; campoId = 0; campoGranArea = ""; campoArea = ""; campoDisciplina = "";
+        mostrarFormulario = true; mensaje = "";
+    }
+
+    private void EditarRegistro(Dictionary<string, object?> reg) {
+        editando = true;
+        campoId = int.Parse(reg["id"]?.ToString() ?? "0");
+        campoGranArea = reg["gran_area"]?.ToString() ?? "";
+        campoArea = reg["area"]?.ToString() ?? "";
+        campoDisciplina = reg["disciplina"]?.ToString() ?? "";
+        mostrarFormulario = true;
+    }
+
+
+    private async Task EliminarRegistro(Dictionary<string, object?> reg) {
+        var res = await Api.EliminarAsync("area_conocimiento", "id", reg["id"]?.ToString() ?? "");
+        exito = res.exito; mensaje = res.mensaje;
+        if (exito) await CargarRegistros();
+    }
+
+    private void Cancelar() => mostrarFormulario = false;
+}

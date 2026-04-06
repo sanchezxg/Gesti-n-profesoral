@@ -1,0 +1,153 @@
+@page "/estudio-ac"
+@rendermode InteractiveServer
+@inject FrontBlazor_AppiGenericaCsharp.Services.ApiService Api
+
+<PageTitle>Vinculación de Áreas</PageTitle>
+
+<div class="container mt-4">
+    <div class="d-flex justify-content-between align-items-center">
+        <h3>Vinculación: Estudios y Áreas de Conocimiento</h3>
+        <button class="btn btn-primary" @onclick="NuevoRegistro">
+            <span class="bi bi-plus-circle"></span> Vincular Nueva Área
+        </button>
+    </div>
+
+    @* Alertas de estado *@
+    @if (!string.IsNullOrEmpty(mensaje))
+    {
+        <div class="alert @(exito ? "alert-success" : "alert-danger") alert-dismissible fade show mt-3">
+            @mensaje
+            <button type="button" class="btn-close" @onclick="() => mensaje = string.Empty"></button>
+        </div>
+    }
+
+    @* Formulario de Vinculación *@
+    @if (mostrarFormulario)
+    {
+        <div class="card my-4 shadow-sm border-primary">
+            <div class="card-header bg-primary text-white">
+                <h5 class="mb-0">Registrar Nueva Relación</h5>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-6 mb-3">
+                        <label class="form-label">ID del Estudio</label>
+                        <input class="form-control" type="number" @bind="campoEstudio" placeholder="Ingrese ID de Estudios Realizados" />
+                        <small class="text-muted">Busque el ID en la página de Estudios Realizados.</small>
+                    </div>
+                    <div class="col-md-6 mb-3">
+                        <label class="form-label">ID Área de Conocimiento</label>
+                        <input class="form-control" type="number" @bind="campoArea" placeholder="Ingrese ID del Área" />
+                        <small class="text-muted">Busque el ID en la página de Áreas de Conocimiento.</small>
+                    </div>
+                </div>
+                <div class="d-flex justify-content-end">
+                    <button class="btn btn-success me-2" @onclick="GuardarRegistro">Guardar Vinculación</button>
+                    <button class="btn btn-secondary" @onclick="() => mostrarFormulario = false">Cancelar</button>
+                </div>
+            </div>
+        </div>
+    }
+
+    @* Tabla de datos *@
+    @if (cargando)
+    {
+        <div class="text-center my-5">
+            <div class="spinner-border text-primary" role="status"></div>
+            <p>Cargando vinculaciones...</p>
+        </div>
+    }
+    else
+    {
+        <table class="table table-bordered table-hover mt-4">
+            <thead class="table-dark">
+                <tr>
+                    <th>ID Estudio</th>
+                    <th>ID Área de Conocimiento</th>
+                    <th class="text-center">Acciones</th>
+                </tr>
+            </thead>
+            <tbody>
+                @if (registros.Any())
+                {
+                    @foreach (var reg in registros)
+                    {
+                        <tr>
+                            <td>@reg["estudio"]</td>
+                            <td>@reg["area_conocimiento"]</td>
+                            <td class="text-center">
+                                <button class="btn btn-danger btn-sm" @onclick="() => EliminarRegistro(reg)">
+                                    <span class="bi bi-trash"></span> Eliminar
+                                </button>
+                            </td>
+                        </tr>
+                    }
+                }
+                else
+                {
+                    <tr>
+                        <td colspan="3" class="text-center text-muted">No hay relaciones creadas aún.</td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    }
+</div>
+
+@code {
+    private List<Dictionary<string, object?>> registros = new();
+    private bool cargando = true, mostrarFormulario = false, exito = false;
+    private string mensaje = "";
+
+    // NOTA: En esta tabla NO hay autoincrementales. 
+    // Ambos campos son necesarios para crear la fila.
+    private int campoEstudio;
+    private int campoArea;
+
+    protected override async Task OnInitializedAsync() => await CargarRegistros();
+
+    private async Task CargarRegistros() {
+        cargando = true;
+        // Cambia "estudio_ac" por el nombre exacto de tu tabla en SQL si es diferente
+        registros = await Api.ListarAsync("estudio_ac");
+        cargando = false;
+    }
+
+    private void NuevoRegistro() {
+        campoEstudio = 0;
+        campoArea = 0;
+        mostrarFormulario = true;
+        mensaje = "";
+    }
+
+    private async Task GuardarRegistro() {
+        if (campoEstudio <= 0 || campoArea <= 0) {
+            exito = false;
+            mensaje = "Ambos IDs deben ser mayores a cero.";
+            return;
+        }
+
+        var datos = new Dictionary<string, object?> {
+            ["estudio"] = campoEstudio,
+            ["area_conocimiento"] = campoArea
+        };
+
+        // Al ser una tabla de relación, usamos CrearAsync enviando ambos IDs
+        var res = await Api.CrearAsync("estudio_ac", datos);
+        exito = res.exito;
+        mensaje = res.mensaje;
+
+        if (exito) {
+            mostrarFormulario = false;
+            await CargarRegistros();
+        }
+    }
+
+    private async Task EliminarRegistro(Dictionary<string, object?> reg) {
+        // Para borrar en tabla intermedia, usamos uno de los IDs como referencia
+        var res = await Api.EliminarAsync("estudio_ac", "estudio", reg["estudio"]?.ToString() ?? "");
+        exito = res.exito;
+        mensaje = res.mensaje;
+        if (exito) await CargarRegistros();
+    }
+}

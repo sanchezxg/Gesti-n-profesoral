@@ -1,0 +1,149 @@
+@page "/apoyo-profesoral"
+@rendermode InteractiveServer
+@inject FrontBlazor_AppiGenericaCsharp.Services.ApiService Api
+
+<PageTitle>Apoyo Profesoral</PageTitle>
+
+<div class="container mt-4">
+    <h3>Gestión de Apoyo Profesoral</h3>
+
+    @if (!string.IsNullOrEmpty(mensaje))
+    {
+        <div class="alert @(exito ? "alert-success" : "alert-danger") alert-dismissible fade show">
+            @mensaje
+            <button type="button" class="btn-close" @onclick="() => mensaje = string.Empty"></button>
+        </div>
+    }
+
+    @if (!mostrarFormulario)
+    {
+        <button class="btn btn-primary mb-3" @onclick="NuevoRegistro">Nuevo Apoyo</button>
+    }
+
+    @if (mostrarFormulario)
+    {
+        <div class="card mb-3 shadow border-warning">
+            <div class="card-header bg-warning text-dark">@(editando ? "Editar Apoyo" : "Nuevo Apoyo")</div>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-3 mb-3">
+                        <label class="form-label">ID Estudio (FK)</label>
+                        <input class="form-control" type="number" @bind="campoEstudios" disabled="@editando" />
+                    </div>
+                    <div class="col-md-3 mb-3">
+                        <label class="form-label">¿Cuenta con Apoyo?</label>
+                        <select class="form-select" @bind="campoConApoyo">
+                            <option value="true">Sí</option>
+                            <option value="false">No</option>
+                        </select>
+                    </div>
+                    <div class="col-md-3 mb-3">
+                        <label class="form-label">Institución</label>
+                        <input class="form-control" @bind="campoInstitucion" placeholder="Ej: Universidad / Ministerio" />
+                    </div>
+                    <div class="col-md-3 mb-3">
+                        <label class="form-label">Tipo de Apoyo</label>
+                        <input class="form-control" @bind="campoTipo" placeholder="Ej: Económico / Tiempo" />
+                    </div>
+                </div>
+                <div class="mt-2">
+                    <button class="btn btn-success me-2" @onclick="GuardarRegistro">Guardar Apoyo</button>
+                    <button class="btn btn-secondary" @onclick="Cancelar">Cancelar</button>
+                </div>
+            </div>
+        </div>
+    }
+
+    @if (cargando)
+    {
+        <div class="d-flex justify-content-center my-4"><div class="spinner-border text-warning"></div></div>
+    }
+    else
+    {
+        <table class="table table-hover mt-3">
+            <thead class="table-warning">
+                <tr>
+                    <th>ID Estudio</th>
+                    <th>¿Con Apoyo?</th>
+                    <th>Institución</th>
+                    <th>Tipo</th>
+                    <th>Acciones</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var reg in registros)
+                {
+                    <tr>
+                        <td>@reg["estudios"]</td>
+                        <td>
+                            <span class="badge @(Convert.ToBoolean(reg["con_apoyo"]) ? "bg-success" : "bg-secondary")">
+                                @(Convert.ToBoolean(reg["con_apoyo"]) ? "SÍ" : "NO")
+                            </span>
+                        </td>
+                        <td>@reg["institucion"]</td>
+                        <td>@reg["tipo"]</td>
+                        <td>
+                            <button class="btn btn-warning btn-sm" @onclick="() => EditarRegistro(reg)">Editar</button>
+                            <button class="btn btn-danger btn-sm" @onclick="() => EliminarRegistro(reg)">Eliminar</button>
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    }
+</div>
+
+@code {
+    private List<Dictionary<string, object?>> registros = new();
+    private bool cargando = true, mostrarFormulario = false, editando = false, exito = false;
+    private string mensaje = "";
+
+    private int campoEstudios;
+    private bool campoConApoyo = true;
+    private string campoInstitucion = "", campoTipo = "";
+
+    protected override async Task OnInitializedAsync() => await CargarRegistros();
+
+    private async Task CargarRegistros() {
+        cargando = true;
+        registros = await Api.ListarAsync("apoyo_profesoral");
+        cargando = false;
+    }
+
+    private void NuevoRegistro() {
+        editando = false; campoEstudios = 0; campoInstitucion = ""; campoTipo = ""; campoConApoyo = true;
+        mostrarFormulario = true; mensaje = "";
+    }
+
+    private void EditarRegistro(Dictionary<string, object?> reg) {
+        editando = true;
+        campoEstudios = int.Parse(reg["estudios"]?.ToString() ?? "0");
+        campoConApoyo = Convert.ToBoolean(reg["con_apoyo"]);
+        campoInstitucion = reg["institucion"]?.ToString() ?? "";
+        campoTipo = reg["tipo"]?.ToString() ?? "";
+        mostrarFormulario = true;
+    }
+
+    private async Task GuardarRegistro() {
+        var datos = new Dictionary<string, object?> {
+            ["estudios"] = campoEstudios,
+            ["con_apoyo"] = campoConApoyo ? 1 : 0, // Convertimos bool a int para SQL (bit)
+            ["institucion"] = campoInstitucion,
+            ["tipo"] = campoTipo
+        };
+
+        var res = editando 
+            ? await Api.ActualizarAsync("apoyo_profesoral", "estudios", campoEstudios.ToString(), datos)
+            : await Api.CrearAsync("apoyo_profesoral", datos);
+
+        exito = res.exito; mensaje = res.mensaje;
+        if (exito) { mostrarFormulario = false; await CargarRegistros(); }
+    }
+
+    private async Task EliminarRegistro(Dictionary<string, object?> reg) {
+        var res = await Api.EliminarAsync("apoyo_profesoral", "estudios", reg["estudios"]?.ToString() ?? "");
+        if (res.exito) await CargarRegistros();
+    }
+
+    private void Cancelar() => mostrarFormulario = false;
+}
