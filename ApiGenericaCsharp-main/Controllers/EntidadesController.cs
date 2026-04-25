@@ -178,7 +178,7 @@ namespace ApiGenericaCsharp.Controllers
         /// Todas las respuestas incluyen información estructurada para facilitar el uso de la API.
         /// </returns>
         //[AllowAnonymous]                                  // Permite acceso sin autenticación (apropiado para desarrollo)
-        //[Authorize]
+        [Authorize]
         [HttpGet]                                        // Responde exclusivamente a peticiones HTTP GET
         public async Task<IActionResult> ListarAsync(
             string tabla,                                 // Del path de la URL: /api/{tabla}
@@ -427,7 +427,7 @@ namespace ApiGenericaCsharp.Controllers
         /// Con esquema: GET /api/factura/numero/1?esquema=ventas
         /// </summary>
         //[AllowAnonymous]
-        //[Authorize]
+        [Authorize]
         [HttpGet("{nombreClave}/{valor}")]
         public async Task<IActionResult> ObtenerPorClaveAsync(
         string tabla,           // Del path: /api/{tabla}
