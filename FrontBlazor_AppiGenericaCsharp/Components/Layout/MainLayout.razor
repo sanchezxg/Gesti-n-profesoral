@@ -22,7 +22,7 @@
 
 @inherits LayoutComponentBase
 @implements IDisposable
-@inject FrontBlazorTutorial.Services.AuthService _auth
+@inject FrontBlazor_AppiGenericaCsharp.Services.AuthService _auth
 @inject NavigationManager _nav
 
 @if (_cargando)
@@ -40,7 +40,7 @@ else
 
         <main>
             <div class="top-row px-4 d-flex justify-content-between align-items-center">
-                <span>Frontend Blazor — API GenericaCsharp</span>
+                <span>Frontend Blazor — API GenericaCsharp  </span>
                 @if (_auth.EstaAutenticado)
                 {
                     <div class="d-flex align-items-center gap-3">
@@ -55,6 +55,7 @@ else
             </div>
 
             <article class="content px-4">
+                
                 @Body
             </article>
         </main>

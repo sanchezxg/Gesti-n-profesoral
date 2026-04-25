@@ -1,4 +1,5 @@
 using FrontBlazor_AppiGenericaCsharp.Components;
+using FrontBlazor_AppiGenericaCsharp.Services;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -14,9 +15,9 @@ builder.Services.AddScoped(sp => new HttpClient
 });
 
 builder.Services.AddScoped<AuthService>();
-builder.Services.AddScoped<FrontBlazorTutorial.Services.ApiService>(sp =>
+builder.Services.AddScoped<FrontBlazor_AppiGenericaCsharp.Services.ApiService>(sp =>
     new ApiService(sp.GetRequiredService<HttpClient>(), sp.GetRequiredService<AuthService>()));
-builder.Services.AddScoped<FrontBlazor_AppiGenericaCsharp.Services.SpService>();
+
 
 var app = builder.Build();
 
