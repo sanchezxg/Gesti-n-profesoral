@@ -13,7 +13,9 @@ builder.Services.AddScoped(sp => new HttpClient
     BaseAddress = new Uri("http://localhost:5034")
 });
 
-builder.Services.AddScoped<FrontBlazor_AppiGenericaCsharp.Services.ApiService>();
+builder.Services.AddScoped<AuthService>();
+builder.Services.AddScoped<FrontBlazorTutorial.Services.ApiService>(sp =>
+    new ApiService(sp.GetRequiredService<HttpClient>(), sp.GetRequiredService<AuthService>()));
 builder.Services.AddScoped<FrontBlazor_AppiGenericaCsharp.Services.SpService>();
 
 var app = builder.Build();
