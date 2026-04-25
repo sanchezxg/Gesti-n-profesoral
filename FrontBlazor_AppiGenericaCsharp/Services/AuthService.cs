@@ -132,7 +132,7 @@ using System.Globalization;
 using System.Text.Json;
 using Microsoft.AspNetCore.Components.Server.ProtectedBrowserStorage;
 
-namespace FrontBlazorTutorial.Services;
+namespace FrontBlazor_AppiGenericaCsharp.Services;
 
 public class AuthService
 {
@@ -160,7 +160,7 @@ public class AuthService
     {
         _session = session;
         // Busca ApiUrl primero, si no existe busca ApiBaseUrl (compatible con ambos nombres)
-        _apiUrl = config["ApiUrl"] ?? config["ApiBaseUrl"] ?? "http://127.0.0.1:7034";
+        _apiUrl = config["ApiUrl"] ?? config["ApiBaseUrl"] ?? "http://127.0.0.1:5034";
         _http = new HttpClient { BaseAddress = new Uri(_apiUrl) };
     }
 
@@ -497,7 +497,7 @@ public class AuthService
 
             // Verificar si la autenticacion fue exitosa
             var (ok, msg) = authTask.Result;
-            if (!ok) return (false, "Credenciales incorrectas");
+            if (!ok) return (false, msg);
 
             // Si llego aqui, el usuario ES quien dice ser (autenticacion exitosa)
             Usuario = email;

@@ -1,7 +1,7 @@
 using System.Net.Http.Json;
 using System.Text.Json;
 
-namespace FrontBlazorTutorial.Services
+namespace FrontBlazor_AppiGenericaCsharp.Services
 {
     /// <summary>
     /// Servicio que consume la API generica C#.
