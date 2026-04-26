@@ -3,6 +3,7 @@ using System.Text.Json;
 
 namespace FrontBlazor_AppiGenericaCsharp.Services
 {
+    
     /// <summary>
     /// Servicio que consume la API generica C#.
     /// Si AuthService tiene un token JWT, lo envia en cada request
@@ -127,6 +128,7 @@ namespace FrontBlazor_AppiGenericaCsharp.Services
                 return (false, $"Error de conexion: {ex.Message}");
             }
         }
+        
 
         // ──────────────────────────────────────────────
         // ELIMINAR: DELETE /api/{tabla}/{clave}/{valor}

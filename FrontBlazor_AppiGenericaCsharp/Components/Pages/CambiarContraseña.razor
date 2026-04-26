@@ -1,0 +1,99 @@
+@page "/cambiar-contrasena"
+@inject FrontBlazor_AppiGenericaCsharp.Services.AuthService Auth
+@inject NavigationManager Nav
+@rendermode InteractiveServer
+
+<div class="container mt-5" style="max-width:560px">
+    <div class="row justify-content-center">
+        <div class="col-12">
+            <div class="card shadow border-0">
+                <div class="card-header bg-dark text-white text-center py-3">
+                    <h5 class="mb-0"><i class="bi bi-shield-lock"></i> Cambiar Contrasena</h5>
+                </div>
+                <div class="card-body p-4">
+                    <div class="mb-3">
+                        <label class="fw-bold">Nueva Contraseña</label>
+                        <input type="password" class="form-control" @bind="nuevaPass" />
+                        <small class="text-muted">Minimo 8 caracteres.</small>
+                    </div>
+                    <div class="mb-3">
+                        <label class="fw-bold">Confirmar Contraseña</label>
+                        <input type="password" class="form-control" @bind="confirmarPass" />
+                    </div>
+
+                    @if (!string.IsNullOrEmpty(mensaje))
+                    {
+                        <div class="alert @claseAlert mt-2">@mensaje</div>
+                    }
+
+                    <div class="d-grid gap-2 mt-4">
+                        <button class="btn btn-primary" @onclick="EjecutarCambio" disabled="@cargando">
+                            @if (cargando)
+                            {
+                                <span class="spinner-border spinner-border-sm me-2"></span>
+                            }
+                            <i class="bi bi-arrow-repeat"></i> Actualizar Contraseña
+                        </button>
+                        <button class="btn btn-light" @onclick='() => Nav.NavigateTo("/")' disabled="@cargando">Cancelar</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@code {
+    private bool cargando;
+    private string nuevaPass = "", confirmarPass = "", mensaje = "", claseAlert = "";
+
+    private async Task EjecutarCambio()
+    {
+        if (!Auth.EstaAutenticado)
+        {
+            MostrarMensaje("Debe iniciar sesion para cambiar su contrasena.", "alert-warning");
+            Nav.NavigateTo("/login");
+            return;
+        }
+
+        if (string.IsNullOrWhiteSpace(nuevaPass) || string.IsNullOrWhiteSpace(confirmarPass))
+        {
+            MostrarMensaje("Por favor complete todos los campos.", "alert-danger");
+            return;
+        }
+
+        if (nuevaPass.Length < 8)
+        {
+            MostrarMensaje("La contrasena debe tener minimo 8 caracteres.", "alert-warning");
+            return;
+        }
+
+        if (nuevaPass != confirmarPass)
+        {
+            MostrarMensaje("La nueva contraseña y la confirmación no coinciden.", "alert-warning");
+            return;
+        }
+
+        cargando = true;
+        var (exito, msg) = await Auth.CambiarContrasena(nuevaPass);
+        cargando = false;
+
+        if (exito)
+        {
+            MostrarMensaje("Contraseña actualizada correctamente.", "alert-success");
+            nuevaPass = "";
+            confirmarPass = "";
+            await Task.Delay(700);
+            Nav.NavigateTo("/");
+        }
+        else
+        {
+            MostrarMensaje($"Error: {msg}", "alert-danger");
+        }
+    }
+
+    private void MostrarMensaje(string texto, string clase)
+    {
+        mensaje = texto;
+        claseAlert = clase;
+    }
+}

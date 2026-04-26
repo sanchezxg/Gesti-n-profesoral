@@ -1,0 +1,73 @@
+@page "/recuperar-contrasena"
+@layout FrontBlazor_AppiGenericaCsharp.Components.Layout.EmptyLayout
+@inject FrontBlazor_AppiGenericaCsharp.Services.AuthService Auth
+@inject IConfiguration Config
+@inject NavigationManager Nav
+@rendermode InteractiveServer
+
+<div class="d-flex justify-content-center align-items-center" style="min-height:100vh;background:#f0f2f5">
+    <div class="card shadow" style="width:430px">
+        <div class="card-header text-center" style="background:var(--bs-primary, #0d6efd);color:white">
+            <h4 class="mb-0">Recuperar Contrasena</h4>
+        </div>
+        <div class="card-body p-4">
+            <p class="small text-muted mb-3">
+                Ingrese su correo. Le enviaremos una contrasena temporal.
+            </p>
+
+            @if (!string.IsNullOrEmpty(mensaje))
+            {
+                <div class="alert @claseAlert small py-2">@mensaje</div>
+            }
+
+            <div class="mb-3">
+                <label class="form-label small">Correo electronico</label>
+                <input type="email" class="form-control" @bind="email" />
+            </div>
+
+            <button class="btn btn-primary w-100" @onclick="Recuperar" disabled="@cargando">
+                @if (cargando)
+                {
+                    <span class="spinner-border spinner-border-sm me-1"></span>
+                }
+                Enviar recuperacion
+            </button>
+
+            <div class="text-center mt-3">
+                <a href="/login" class="small text-muted">Volver al login</a>
+            </div>
+        </div>
+    </div>
+</div>
+
+@code {
+    private string email = "";
+    private string mensaje = "";
+    private string claseAlert = "alert-info";
+    private bool cargando;
+
+    private async Task Recuperar()
+    {
+        mensaje = "";
+
+        if (string.IsNullOrWhiteSpace(email) || !email.Contains("@"))
+        {
+            claseAlert = "alert-warning";
+            mensaje = "Ingrese un correo valido.";
+            return;
+        }
+
+        cargando = true;
+        var (ok, msg) = await Auth.RecuperarContrasena(email.Trim(), Config);
+        cargando = false;
+
+        claseAlert = ok ? "alert-success" : "alert-danger";
+        mensaje = msg;
+
+        if (ok)
+        {
+            await Task.Delay(1200);
+            Nav.NavigateTo("/login", forceLoad: false);
+        }
+    }
+}
