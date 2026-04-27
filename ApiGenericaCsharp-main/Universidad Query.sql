@@ -1,4 +1,4 @@
--- SQL Server Script generado por conversi�n manual
+-- SQL Server Script generado por conversi�n manual
 create database Universidad
 use Universidad
 
@@ -786,3 +786,89 @@ CREATE TABLE intereses_futuros (
     ON DELETE NO ACTION ON UPDATE NO ACTION
 );
 GO
+ use Universidad
+-- ============================================
+-- TABLAS PARA AUTENTICACIÓN Y AUTORIZACIÓN
+-- ============================================
+CREATE TABLE usuarios (
+    email NVARCHAR(100) NOT NULL PRIMARY KEY,
+    nombre NVARCHAR(100) NOT NULL,
+    contrasena NVARCHAR(255) NOT NULL,
+    activo BIT NOT NULL DEFAULT 1,
+    debe_cambiar_contrasena BIT NOT NULL DEFAULT 0,
+    fecha_creacion DATETIME2 NOT NULL DEFAULT GETDATE(),
+    ultimo_acceso DATETIME2 NULL
+);
+CREATE TABLE roles (
+    id INT IDENTITY(1,1) NOT NULL PRIMARY KEY,
+    nombre NVARCHAR(50) NOT NULL UNIQUE,
+    descripcion NVARCHAR(255) NULL
+);
+CREATE TABLE rol_usuario (
+    usuario NVARCHAR(100) NOT NULL,
+    rol INT NOT NULL,
+    PRIMARY KEY (usuario, rol),
+    CONSTRAINT fk_rol_usuario_usuario FOREIGN KEY (usuario)
+        REFERENCES usuarios (email) ON DELETE CASCADE ON UPDATE CASCADE,
+    CONSTRAINT fk_rol_usuario_rol FOREIGN KEY (rol)
+        REFERENCES roles (id) ON DELETE CASCADE
+);
+CREATE TABLE rutas (
+    id INT IDENTITY(1,1) NOT NULL PRIMARY KEY,
+    ruta NVARCHAR(200) NOT NULL UNIQUE,
+    descripcion NVARCHAR(255) NULL
+);
+CREATE TABLE ruta_rol (
+    ruta INT NOT NULL,
+    rol INT NOT NULL,
+    PRIMARY KEY (ruta, rol),
+    CONSTRAINT fk_ruta_rol_ruta FOREIGN KEY (ruta)
+        REFERENCES rutas (id) ON DELETE CASCADE,
+    CONSTRAINT fk_ruta_rol_rol FOREIGN KEY (rol)
+        REFERENCES roles (id) ON DELETE CASCADE
+);
+-- Datos iniciales
+INSERT INTO roles (nombre, descripcion) VALUES
+('Administrador', 'Acceso total al sistema'),
+('Vicedecano', 'Gestion docente y de programas'),
+('Docente', 'Visualizacion y edicion limitada'),
+('Visitante', 'Solo lectura');
+INSERT INTO rutas (ruta, descripcion) VALUES
+('/', 'Inicio'),
+('/docente', 'Gestion de docentes'),
+('/programa', 'Gestion de programas'),
+('/proyecto', 'Gestion de proyectos'),
+('/usuario', 'Gestion de usuarios'),
+('/reportes', 'Reportes y estadisticas'),
+('/admin', 'Panel de administracion'),
+('/red', 'Redes academicas'),
+('/aliado', 'Aliados estrategicos'),
+('/beca', 'Gestion de becas'),
+('/estudios-realizados', 'Estudios realizados'),
+('/linea_investigacion', 'Lineas de investigacion'),
+('/reconocimiento', 'Reconocimientos');
+-- Admin tiene acceso a TODO
+INSERT INTO ruta_rol (ruta, rol)
+SELECT r.id, (SELECT id FROM roles WHERE nombre = 'Administrador')
+FROM rutas r;
+-- Vicedecano
+INSERT INTO ruta_rol (ruta, rol)
+SELECT r.id, (SELECT id FROM roles WHERE nombre = 'Vicedecano')
+FROM rutas r WHERE r.ruta IN ('/', '/docente', '/programa', '/proyecto', '/reportes',
+'/red', '/aliado', '/beca', '/estudios-realizados', '/linea_investigacion', '/reconocimiento');
+-- Docente
+INSERT INTO ruta_rol (ruta, rol)
+SELECT r.id, (SELECT id FROM roles WHERE nombre = 'Docente')
+FROM rutas r WHERE r.ruta IN ('/', '/docente', '/proyecto', '/red', '/beca');
+-- Visitante
+INSERT INTO ruta_rol (ruta, rol)
+SELECT r.id, (SELECT id FROM roles WHERE nombre = 'Visitante')
+FROM rutas r WHERE r.ruta = '/';
+-- Crear usuario admin por defecto (contrasena: Admin123!)
+DECLARE @hash NVARCHAR(255);
+SET @hash = '$2a$12$LJ3m4ys3Lk0TSwHCpNqrOOEF7e31vY3FxJRXz3zHNmqE3YGx7qKKe';
+INSERT INTO usuarios (email, nombre, contrasena, activo) VALUES
+('admin@universidad.edu.co', 'Administrador', @hash, 1);
+-- Asignar rol Admin al usuario creado
+INSERT INTO rol_usuario (usuario, rol)
+SELECT 'admin@universidad.edu.co', id FROM roles WHERE nombre = 'Administrador';
