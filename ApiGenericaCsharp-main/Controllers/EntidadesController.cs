@@ -543,7 +543,7 @@ namespace ApiGenericaCsharp.Controllers
         /// Ruta: POST /api/{tabla}
         /// Ejemplo: POST /api/usuario con body JSON
         /// </summary>
-        [AllowAnonymous]
+        [Authorize(Roles = "Administrador,Vicedecano,Docente")]
         [HttpPost]
         public async Task<IActionResult> CrearAsync(
             string tabla,                                           // Del path: /api/{tabla}
@@ -678,7 +678,7 @@ namespace ApiGenericaCsharp.Controllers
         /// Ejemplo: PUT /api/usuario/email/juan@test.com con body JSON
         /// Con encriptación: PUT /api/usuario/email/juan@test.com?camposEncriptar=contrasena
         /// </summary>
-        [AllowAnonymous]
+        [Authorize(Roles = "Administrador,Vicedecano")]
         [HttpPut("{nombreClave}/{valorClave}")]
         public async Task<IActionResult> ActualizarAsync(
             string tabla,                                           // Del path: /api/{tabla}
@@ -829,7 +829,7 @@ namespace ApiGenericaCsharp.Controllers
         /// Ruta: DELETE /api/{tabla}/{nombreClave}/{valorClave}
         /// Ejemplo: DELETE /api/producto/codigo/PRD001
         /// </summary>
-        [AllowAnonymous]
+        [Authorize(Roles = "Administrador")]
         [HttpDelete("{nombreClave}/{valorClave}")]
         public async Task<IActionResult> EliminarAsync(
             string tabla,                                          // Del path: /api/{tabla}

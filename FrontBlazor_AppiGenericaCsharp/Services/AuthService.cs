@@ -485,7 +485,7 @@ public class AuthService
             var pkTask = PrecargarEstructura();
             var authTask = PostJson("autenticacion/token", new Dictionary<string, object?>
             {
-                ["tabla"] = "usuario",           // En que tabla buscar
+                ["tabla"] = "usuarios",          // En que tabla buscar
                 ["campoUsuario"] = "email",      // Que columna es el login
                 ["campoContrasena"] = "contrasena", // Que columna es la contrasena
                 ["usuario"] = email,             // El email ingresado por el usuario
@@ -501,6 +501,11 @@ public class AuthService
 
             // Si llego aqui, el usuario ES quien dice ser (autenticacion exitosa)
             Usuario = email;
+
+            // Agregar token JWT al HttpClient para llamadas protegidas posteriores
+            if (!string.IsNullOrEmpty(Token))
+                _http.DefaultRequestHeaders.Authorization =
+                    new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", Token);
 
             // ── PASO 2: AUTORIZACION (¿Que puedes hacer?) ──
             // UNA SOLA llamada a ConsultasController:
@@ -594,13 +599,13 @@ public class AuthService
             // ── Paso 1: Descubrir nombres de FK/PK de la estructura ──
             // PrecargarEstructura() ya se ejecuto antes (en Login).
             // Estos metodos leen del _cache, no hacen llamadas HTTP.
-            var pkUsuario = await ObtenerPK("usuario");          // ej: "email"
-            var pkRol = await ObtenerPK("rol");                  // ej: "id"
-            var pkRuta = await ObtenerPK("ruta");                // ej: "id"
-            var fkEmail = await ObtenerFK("rol_usuario", "usuario"); // ej: "fkemail"
-            var fkRolEnRolUsuario = await ObtenerFK("rol_usuario", "rol"); // ej: "fkidrol"
-            var fkRolEnRutarol = await ObtenerFK("rutarol", "rol");   // ej: "fkidrol"
-            var fkRutaEnRutarol = await ObtenerFK("rutarol", "ruta"); // ej: "fkidruta"
+            var pkUsuario = await ObtenerPK("usuarios");          // ej: "email"
+            var pkRol = await ObtenerPK("roles");                 // ej: "id"
+            var pkRuta = await ObtenerPK("rutas");                // ej: "id"
+            var fkEmail = await ObtenerFK("rol_usuario", "usuarios"); // ej: "usuario"
+            var fkRolEnRolUsuario = await ObtenerFK("rol_usuario", "roles"); // ej: "rol"
+            var fkRolEnRutarol = await ObtenerFK("ruta_rol", "roles");   // ej: "rol"
+            var fkRutaEnRutarol = await ObtenerFK("ruta_rol", "rutas"); // ej: "ruta"
 
             // Si faltan FKs criticos, no se puede armar la consulta
             if (fkEmail == null || fkRolEnRolUsuario == null || fkRolEnRutarol == null)
@@ -631,11 +636,11 @@ public class AuthService
             //   WHERE u.email = @email
 
             var sql = $@"SELECT r.nombre AS nombre_rol, ruta_t.ruta
-FROM usuario u
+FROM usuarios u
 JOIN rol_usuario rolu ON u.{pkUsuario} = rolu.{fkEmail}
-JOIN rol r ON rolu.{fkRolEnRolUsuario} = r.{pkRol}
-JOIN rutarol rr ON r.{pkRol} = rr.{fkRolEnRutarol}
-JOIN ruta ruta_t ON rr.{fkRutaEnRutarol} = ruta_t.{pkRuta}
+JOIN roles r ON rolu.{fkRolEnRolUsuario} = r.{pkRol}
+JOIN ruta_rol rr ON r.{pkRol} = rr.{fkRolEnRutarol}
+JOIN rutas ruta_t ON rr.{fkRutaEnRutarol} = ruta_t.{pkRuta}
 WHERE u.{pkUsuario} = @email";
 
             // ── Paso 3: Ejecutar la consulta via ConsultasController ──
@@ -663,10 +668,19 @@ WHERE u.{pkUsuario} = @email";
                     RutasPermitidas.Add(ruta); // HashSet ignora duplicados automaticamente
             }
 
-            // ── Paso 5: Cargar nombre del usuario (campo opcional) ──
-            // El nombre no viene en la consulta de roles/rutas porque la tabla usuario
-            // puede no tener campo "nombre" (depende de la BD).
-            // Se busca con un GET simple a /api/usuario (solo 1 registro nos interesa).
+            // ── Paso 5: Si la consulta JOIN no retornó roles, intentar fallbacks ──
+            if (Roles.Count == 0)
+            {
+                await CargarRolesFallback(email);
+                if (Roles.Count > 0)
+                    await CargarRutasPermitidasFallback();
+            }
+            if (Roles.Count == 0)
+            {
+                await CargarRolesRutasDirecto(email);
+            }
+
+            // ── Paso 6: Cargar nombre del usuario (campo opcional) ──
             await CargarDatosUsuarioFallback(email);
         }
         catch
@@ -685,8 +699,8 @@ WHERE u.{pkUsuario} = @email";
     {
         try
         {
-            var pkUsuario = await ObtenerPK("usuario");
-            var usuarios = await Listar("usuario");
+            var pkUsuario = await ObtenerPK("usuarios");
+            var usuarios = await Listar("usuarios");
             foreach (var u in usuarios)
             {
                 var val = u.GetValueOrDefault(pkUsuario)?.ToString() ?? "";
@@ -723,13 +737,13 @@ WHERE u.{pkUsuario} = @email";
         Roles.Clear();
         try
         {
-            var fkEmail = await ObtenerFK("rol_usuario", "usuario");
-            var fkRol = await ObtenerFK("rol_usuario", "rol");
+            var fkEmail = await ObtenerFK("rol_usuario", "usuarios");
+            var fkRol = await ObtenerFK("rol_usuario", "roles");
             if (fkEmail == null || fkRol == null) return;
-            var pkRol = await ObtenerPK("rol");
+            var pkRol = await ObtenerPK("roles");
 
             var t1 = Listar("rol_usuario");
-            var t2 = Listar("rol");
+            var t2 = Listar("roles");
             await Task.WhenAll(t1, t2);
             var rolUsuarios = t1.Result;
             var roles = t2.Result;
@@ -762,15 +776,15 @@ WHERE u.{pkUsuario} = @email";
         RutasPermitidas.Clear();
         try
         {
-            var fkRolEnRutarol = await ObtenerFK("rutarol", "rol");
-            var fkRutaEnRutarol = await ObtenerFK("rutarol", "ruta");
+            var fkRolEnRutarol = await ObtenerFK("ruta_rol", "roles");
+            var fkRutaEnRutarol = await ObtenerFK("ruta_rol", "rutas");
             if (fkRolEnRutarol == null) return;
-            var pkRol = await ObtenerPK("rol");
-            var pkRuta = await ObtenerPK("ruta");
+            var pkRol = await ObtenerPK("roles");
+            var pkRuta = await ObtenerPK("rutas");
 
-            var t1 = Listar("rutarol");
-            var t2 = Listar("rol");
-            var t3 = Listar("ruta");
+            var t1 = Listar("ruta_rol");
+            var t2 = Listar("roles");
+            var t3 = Listar("rutas");
             await Task.WhenAll(t1, t2, t3);
             var rutasRol = t1.Result;
             var rolesData = t2.Result;
@@ -806,6 +820,41 @@ WHERE u.{pkUsuario} = @email";
         catch { }
     }
 
+    /// <summary>
+    /// [FALLBACK DIRECTO] Carga roles y rutas con nombres de columna hardcodeados.
+    /// Se usa como ultimo recurso cuando ni la consulta JOIN ni los fallbacks basados
+    /// en FK descubiertos dinamicamente logran cargar los roles.
+    /// </summary>
+    private async Task CargarRolesRutasDirecto(string email)
+    {
+        try
+        {
+            var sql = @"SELECT r.nombre AS nombre_rol, ruta_t.ruta
+FROM usuarios u
+JOIN rol_usuario rolu ON u.email = rolu.usuario
+JOIN roles r ON rolu.rol = r.id
+JOIN ruta_rol rr ON r.id = rr.rol
+JOIN rutas ruta_t ON rr.ruta = ruta_t.id
+WHERE u.email = @email";
+
+            var resultados = await PostConsulta(sql, new Dictionary<string, object?>
+            {
+                ["email"] = email
+            });
+
+            foreach (var fila in resultados)
+            {
+                var nombreRol = fila.GetValueOrDefault("nombre_rol")?.ToString() ?? "";
+                if (!string.IsNullOrEmpty(nombreRol) && !Roles.Contains(nombreRol))
+                    Roles.Add(nombreRol);
+                var ruta = fila.GetValueOrDefault("ruta")?.ToString() ?? "";
+                if (!string.IsNullOrEmpty(ruta))
+                    RutasPermitidas.Add(ruta);
+            }
+        }
+        catch { }
+    }
+
     // ══════════════════════════════════════════════════════════
     // SESION: Restaurar y cerrar
     // ══════════════════════════════════════════════════════════
@@ -828,7 +877,13 @@ WHERE u.{pkUsuario} = @email";
                 if (nombreResult.Success) NombreUsuario = nombreResult.Value;
                 // Restaurar token JWT para que ApiService lo envie en cada request
                 var tokenResult = await _session.GetAsync<string>("token");
-                if (tokenResult.Success) Token = tokenResult.Value;
+                if (tokenResult.Success)
+                {
+                    Token = tokenResult.Value;
+                    if (!string.IsNullOrEmpty(Token))
+                        _http.DefaultRequestHeaders.Authorization =
+                            new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", Token);
+                }
                 var rolesResult = await _session.GetAsync<string>("roles");
                 if (rolesResult.Success && !string.IsNullOrEmpty(rolesResult.Value))
                     Roles = rolesResult.Value.Split(',').ToList();
@@ -851,6 +906,7 @@ WHERE u.{pkUsuario} = @email";
         Roles.Clear();
         RutasPermitidas.Clear();
         DebeCambiarContrasena = false;
+        _http.DefaultRequestHeaders.Authorization = null;
         await _session.DeleteAsync("usuario");
         await _session.DeleteAsync("nombre_usuario");
         await _session.DeleteAsync("token");
@@ -872,13 +928,13 @@ WHERE u.{pkUsuario} = @email";
         if (string.IsNullOrEmpty(Usuario)) return (false, "No hay sesion activa.");
         try
         {
-            var pkUsuario = await ObtenerPK("usuario");
+            var pkUsuario = await ObtenerPK("usuarios");
             var content = new StringContent(
                 JsonSerializer.Serialize(new Dictionary<string, string> { ["contrasena"] = nueva }),
                 System.Text.Encoding.UTF8, "application/json");
-            // PUT /api/usuario/{pk}/{valor}?camposEncriptar=contrasena
+            // PUT /api/usuarios/{pk}/{valor}?camposEncriptar=contrasena
             var resp = await _http.PutAsync(
-                $"/api/usuario/{pkUsuario}/{Usuario}?camposEncriptar=contrasena",
+                $"/api/usuarios/{pkUsuario}/{Usuario}?camposEncriptar=contrasena",
                 content);
             if (resp.IsSuccessStatusCode)
             {
@@ -921,8 +977,8 @@ WHERE u.{pkUsuario} = @email";
             //   404 = el email NO existe
             //   401 = el email SI existe (contrasena incorrecta, lo esperado)
             //   200 = el email SI existe (imposible con contrasena dummy)
-            var pkUsuario = await ObtenerPK("usuario");
-            var verificarUrl = $"/api/usuario/verificar-contrasena";
+            var pkUsuario = await ObtenerPK("usuarios");
+            var verificarUrl = $"/api/usuarios/verificar-contrasena";
             var verificarBody = new Dictionary<string, string>
             {
                 ["campoUsuario"] = pkUsuario,
@@ -1003,12 +1059,12 @@ WHERE u.{pkUsuario} = @email";
 
     private async Task<(bool ok, string msg)> CambiarContrasenaInterno(string email, string nueva)
     {
-        var pkUsuario = await ObtenerPK("usuario");
+        var pkUsuario = await ObtenerPK("usuarios");
         var content = new StringContent(
             JsonSerializer.Serialize(new Dictionary<string, string> { ["contrasena"] = nueva }),
             System.Text.Encoding.UTF8, "application/json");
         var resp = await _http.PutAsync(
-            $"/api/usuario/{pkUsuario}/{email}?camposEncriptar=contrasena", content);
+            $"/api/usuarios/{pkUsuario}/{email}?camposEncriptar=contrasena", content);
         if (resp.IsSuccessStatusCode) return (true, "OK");
         return (false, "Error al actualizar contrasena.");
     }
@@ -1027,6 +1083,7 @@ WHERE u.{pkUsuario} = @email";
     public bool TieneAcceso(string ruta)
     {
         if (ruta == "/") return true;
+        if (Roles.Contains("Administrador")) return true;
         if (RutasPermitidas.Count == 0) return true;
         return RutasPermitidas.Any(r => ruta == r || ruta.StartsWith(r + "/"));
     }

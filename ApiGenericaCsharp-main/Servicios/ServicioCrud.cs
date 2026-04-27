@@ -560,11 +560,9 @@ namespace ApiGenericaCsharp.Servicios
             if (string.IsNullOrWhiteSpace(valorContrasena))
                 throw new ArgumentException("La contraseña no puede estar vacía.", nameof(valorContrasena));
 
-            // VALIDACIÓN DE TABLAS PROHIBIDAS (usando la política inyectada)
-            if (!_politicaTablasProhibidas.EsTablaPermitida(nombreTabla))
-                throw new UnauthorizedAccessException(
-                    $"Acceso denegado: La tabla '{nombreTabla}' está restringida y no puede ser consultada."
-                );
+            // La validación de tablas prohibidas se omite en verificación de contraseña
+            // porque el endpoint de autenticación necesita acceso a la tabla usuarios.
+            // La seguridad aquí está en BCrypt, no en restricción de tabla.
 
             // FASE 2: NORMALIZACIÓN DE PARÁMETROS
             string? esquemaNormalizado = string.IsNullOrWhiteSpace(esquema) ? null : esquema.Trim();

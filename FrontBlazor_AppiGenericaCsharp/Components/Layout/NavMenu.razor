@@ -1,4 +1,5 @@
-﻿﻿@using Microsoft.AspNetCore.Components.Routing
+﻿@using Microsoft.AspNetCore.Components.Routing
+@inject FrontBlazor_AppiGenericaCsharp.Services.AuthService _auth
 
 <div class="top-row ps-3 navbar navbar-dark">
     <div class="container-fluid">
@@ -17,8 +18,17 @@
             </NavLink>
         </div>
 
+        @if (_auth.Roles.Contains("Administrador"))
+        {
+            <div class="nav-item px-3">
+                <NavLink class="nav-link" href="usuarios">
+                    <span class="bi bi-people-fill" aria-hidden="true"></span> Usuarios
+                </NavLink>
+            </div>
+        }
+
         <div class="nav-item px-3">
-            <NavLink class="nav-link" href="red">
+            <NavLink class="nav-link" href="/red">
                 <span class="bi bi-plus-square-fill-nav-menu" aria-hidden="true"></span> Red
             </NavLink>
         </div>
@@ -65,7 +75,7 @@
             </NavLink>
         </div>
         <div class="nav-item px-3">
-            <NavLink class="nav-link" href="/Linea_Investigacion">
+            <NavLink class="nav-link" href="/linea_investigacion">
                 <span class="bi bi-plus-square-fill-nav-menu" aria-hidden="true"></span> Linea de investigacion
             </NavLink>
 
@@ -80,7 +90,7 @@
         </div>
 
         <div class="nav-item px-3">
-            <NavLink class="nav-link" href="/RedDocente">
+            <NavLink class="nav-link" href="/reddocente">
                 <span class="bi bi-plus-square-fill-nav-menu" aria-hidden="true"></span> RedDocente
             </NavLink>
 
@@ -88,7 +98,7 @@
         </div>
 
         <div class="nav-item px-3">
-            <NavLink class="nav-link" href="/Reconocimiento">
+            <NavLink class="nav-link" href="/reconocimiento">
                 <span class="bi bi-plus-square-fill-nav-menu" aria-hidden="true"></span> Reconocimiento
             </NavLink>
         </div>

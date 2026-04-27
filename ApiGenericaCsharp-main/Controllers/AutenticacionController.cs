@@ -20,8 +20,10 @@ using Microsoft.IdentityModel.Tokens;                // Para firmar y generar el
 using System.IdentityModel.Tokens.Jwt;               // Para manipular JWT
 using System.Security.Claims;                        // Para definir los claims dentro del token
 using System.Text;                                   // Para codificar la clave secreta
+using System.Data;                                         // Para DataTable y DataRow
+using System.Text.Json;                                    // Para JsonElement
 using ApiGenericaCsharp.Modelos;                          // Para la clase ConfiguracionJwt
-using ApiGenericaCsharp.Servicios.Abstracciones;           // Para la interfaz IServicioCrud
+using ApiGenericaCsharp.Servicios.Abstracciones;           // Para las interfaces IServicioCrud e IServicioConsultas
 
 namespace ApiGenericaCsharp.Controllers
 {
@@ -35,16 +37,19 @@ namespace ApiGenericaCsharp.Controllers
     {
         private readonly ConfiguracionJwt _configuracionJwt;   // Configuración JWT cargada desde appsettings
         private readonly IServicioCrud _servicioCrud;          // Servicio genérico para verificar contraseñas
+        private readonly IServicioConsultas _servicioConsultas; // Servicio para consultar roles del usuario
 
         // ---------------------------------------------------------
         // CONSTRUCTOR
         // ---------------------------------------------------------
         public AutenticacionController(
             IOptions<ConfiguracionJwt> opcionesJwt, 
-            IServicioCrud servicioCrud)
+            IServicioCrud servicioCrud,
+            IServicioConsultas servicioConsultas)
         {
             _configuracionJwt = opcionesJwt.Value;
             _servicioCrud = servicioCrud;
+            _servicioConsultas = servicioConsultas;
         }
 
         // ---------------------------------------------------------
@@ -107,15 +112,21 @@ namespace ApiGenericaCsharp.Controllers
                 return StatusCode(500, new { estado = 500, mensaje = "Error interno durante la verificación.", detalle = mensaje });
 
             // -----------------------------------------------------
-            // FASE 3: GENERACIÓN DEL TOKEN JWT
+            // FASE 3: GENERACIÓN DEL TOKEN JWT CON ROLES
             // -----------------------------------------------------
-            // Si la verificación fue exitosa, se crea un token JWT con los datos básicos del usuario.
-            var claims = new[]
+            // Si la verificación fue exitosa, se crea un token JWT con los datos básicos del usuario
+            // y TODOS los roles del usuario para que el middleware [Authorize(Roles = "...")] funcione.
+            var roles = await ObtenerRolesAsync(credenciales);
+            var claimsList = new List<Claim>
             {
                 new Claim(ClaimTypes.Name, credenciales.Usuario),       // Nombre de usuario
+                new Claim(ClaimTypes.Email, credenciales.Usuario),      // Email del usuario
                 new Claim("tabla", credenciales.Tabla),                 // Tabla usada para autenticación
                 new Claim("campoUsuario", credenciales.CampoUsuario)    // Campo de usuario utilizado
             };
+            foreach (var rol in roles)
+                claimsList.Add(new Claim(ClaimTypes.Role, rol));        // Cada rol como claim individual
+            var claims = claimsList.ToArray();
 
             // Clave secreta para firmar el token (obtenida desde appsettings.json)
             var clave = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_configuracionJwt.Key));
@@ -149,6 +160,37 @@ namespace ApiGenericaCsharp.Controllers
                 token = tokenGenerado,
                 expiracion = token.ValidTo
             });
+        }
+        /// <summary>
+        /// Consulta los roles del usuario autenticado en la BD.
+        /// Hace JOIN entre usuarios -> rol_usuario -> roles.
+        /// Retorna lista de nombres de roles: ["Administrador"], ["Docente"], etc.
+        /// </summary>
+        private async Task<List<string>> ObtenerRolesAsync(CredencialesGenericas credenciales)
+        {
+            try
+            {
+                var sql = $@"SELECT r.nombre AS nombre_rol
+FROM {credenciales.Tabla} u
+INNER JOIN rol_usuario ru ON u.{credenciales.CampoUsuario} = ru.usuario
+INNER JOIN roles r ON ru.rol = r.id
+WHERE u.{credenciales.CampoUsuario} = @usuario";
+
+                var parametros = new Dictionary<string, object?>
+                {
+                    ["usuario"] = credenciales.Usuario
+                };
+
+                var resultado = await _servicioConsultas.EjecutarConsultaParametrizadaDesdeJsonAsync(sql, parametros);
+                var roles = new List<string>();
+                foreach (DataRow fila in resultado.Rows)
+                    roles.Add(fila["nombre_rol"]?.ToString() ?? "");
+                return roles;
+            }
+            catch
+            {
+                return new List<string>();
+            }
         }
     }
 
