@@ -178,7 +178,7 @@ namespace ApiGenericaCsharp.Controllers
         /// Todas las respuestas incluyen información estructurada para facilitar el uso de la API.
         /// </returns>
         //[AllowAnonymous]                                  // Permite acceso sin autenticación (apropiado para desarrollo)
-        [Authorize]
+        
         [HttpGet]                                        // Responde exclusivamente a peticiones HTTP GET
         public async Task<IActionResult> ListarAsync(
             string tabla,                                 // Del path de la URL: /api/{tabla}
@@ -543,7 +543,7 @@ namespace ApiGenericaCsharp.Controllers
         /// Ruta: POST /api/{tabla}
         /// Ejemplo: POST /api/usuario con body JSON
         /// </summary>
-        [Authorize(Roles = "Administrador,Vicedecano,Docente")]
+        
         [HttpPost]
         public async Task<IActionResult> CrearAsync(
             string tabla,                                           // Del path: /api/{tabla}
@@ -678,7 +678,7 @@ namespace ApiGenericaCsharp.Controllers
         /// Ejemplo: PUT /api/usuario/email/juan@test.com con body JSON
         /// Con encriptación: PUT /api/usuario/email/juan@test.com?camposEncriptar=contrasena
         /// </summary>
-        [Authorize(Roles = "Administrador,Vicedecano")]
+  
         [HttpPut("{nombreClave}/{valorClave}")]
         public async Task<IActionResult> ActualizarAsync(
             string tabla,                                           // Del path: /api/{tabla}
@@ -829,7 +829,7 @@ namespace ApiGenericaCsharp.Controllers
         /// Ruta: DELETE /api/{tabla}/{nombreClave}/{valorClave}
         /// Ejemplo: DELETE /api/producto/codigo/PRD001
         /// </summary>
-        [Authorize(Roles = "Administrador")]
+   
         [HttpDelete("{nombreClave}/{valorClave}")]
         public async Task<IActionResult> EliminarAsync(
             string tabla,                                          // Del path: /api/{tabla}

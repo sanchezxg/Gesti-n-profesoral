@@ -485,7 +485,7 @@ public class AuthService
             var pkTask = PrecargarEstructura();
             var authTask = PostJson("autenticacion/token", new Dictionary<string, object?>
             {
-                ["tabla"] = "usuarios",          // En que tabla buscar
+                ["tabla"] = "usuario",          // En que tabla buscar
                 ["campoUsuario"] = "email",      // Que columna es el login
                 ["campoContrasena"] = "contrasena", // Que columna es la contrasena
                 ["usuario"] = email,             // El email ingresado por el usuario
@@ -599,13 +599,13 @@ public class AuthService
             // ── Paso 1: Descubrir nombres de FK/PK de la estructura ──
             // PrecargarEstructura() ya se ejecuto antes (en Login).
             // Estos metodos leen del _cache, no hacen llamadas HTTP.
-            var pkUsuario = await ObtenerPK("usuarios");          // ej: "email"
-            var pkRol = await ObtenerPK("roles");                 // ej: "id"
-            var pkRuta = await ObtenerPK("rutas");                // ej: "id"
-            var fkEmail = await ObtenerFK("rol_usuario", "usuarios"); // ej: "usuario"
-            var fkRolEnRolUsuario = await ObtenerFK("rol_usuario", "roles"); // ej: "rol"
-            var fkRolEnRutarol = await ObtenerFK("ruta_rol", "roles");   // ej: "rol"
-            var fkRutaEnRutarol = await ObtenerFK("ruta_rol", "rutas"); // ej: "ruta"
+            var pkUsuario = await ObtenerPK("usuario");          // ej: "email"
+            var pkRol = await ObtenerPK("rol");                 // ej: "id"
+            var pkRuta = await ObtenerPK("ruta");                // ej: "id"
+            var fkEmail = await ObtenerFK("rol_usuario", "usuario"); // ej: "usuario"
+            var fkRolEnRolUsuario = await ObtenerFK("rol_usuario", "rol"); // ej: "rol"
+            var fkRolEnRutarol = await ObtenerFK("ruta_rol", "rol");   // ej: "rol"
+            var fkRutaEnRutarol = await ObtenerFK("ruta_rol", "ruta"); // ej: "ruta"
 
             // Si faltan FKs criticos, no se puede armar la consulta
             if (fkEmail == null || fkRolEnRolUsuario == null || fkRolEnRutarol == null)
@@ -699,8 +699,8 @@ WHERE u.{pkUsuario} = @email";
     {
         try
         {
-            var pkUsuario = await ObtenerPK("usuarios");
-            var usuarios = await Listar("usuarios");
+            var pkUsuario = await ObtenerPK("usuario");
+            var usuarios = await Listar("usuario");
             foreach (var u in usuarios)
             {
                 var val = u.GetValueOrDefault(pkUsuario)?.ToString() ?? "";
@@ -737,13 +737,13 @@ WHERE u.{pkUsuario} = @email";
         Roles.Clear();
         try
         {
-            var fkEmail = await ObtenerFK("rol_usuario", "usuarios");
-            var fkRol = await ObtenerFK("rol_usuario", "roles");
+            var fkEmail = await ObtenerFK("rol_usuario", "usuario");
+            var fkRol = await ObtenerFK("rol_usuario", "rol");
             if (fkEmail == null || fkRol == null) return;
             var pkRol = await ObtenerPK("roles");
 
             var t1 = Listar("rol_usuario");
-            var t2 = Listar("roles");
+            var t2 = Listar("rol");
             await Task.WhenAll(t1, t2);
             var rolUsuarios = t1.Result;
             var roles = t2.Result;
@@ -776,15 +776,15 @@ WHERE u.{pkUsuario} = @email";
         RutasPermitidas.Clear();
         try
         {
-            var fkRolEnRutarol = await ObtenerFK("ruta_rol", "roles");
-            var fkRutaEnRutarol = await ObtenerFK("ruta_rol", "rutas");
+            var fkRolEnRutarol = await ObtenerFK("rutarol", "rol");
+            var fkRutaEnRutarol = await ObtenerFK("rutarol", "ruta");
             if (fkRolEnRutarol == null) return;
-            var pkRol = await ObtenerPK("roles");
-            var pkRuta = await ObtenerPK("rutas");
+            var pkRol = await ObtenerPK("rol");
+            var pkRuta = await ObtenerPK("ruta");
 
-            var t1 = Listar("ruta_rol");
-            var t2 = Listar("roles");
-            var t3 = Listar("rutas");
+            var t1 = Listar("rutarol");
+            var t2 = Listar("rol");
+            var t3 = Listar("ruta");
             await Task.WhenAll(t1, t2, t3);
             var rutasRol = t1.Result;
             var rolesData = t2.Result;
@@ -928,7 +928,7 @@ WHERE u.email = @email";
         if (string.IsNullOrEmpty(Usuario)) return (false, "No hay sesion activa.");
         try
         {
-            var pkUsuario = await ObtenerPK("usuarios");
+            var pkUsuario = await ObtenerPK("usuario");
             var content = new StringContent(
                 JsonSerializer.Serialize(new Dictionary<string, string> { ["contrasena"] = nueva }),
                 System.Text.Encoding.UTF8, "application/json");
@@ -977,7 +977,7 @@ WHERE u.email = @email";
             //   404 = el email NO existe
             //   401 = el email SI existe (contrasena incorrecta, lo esperado)
             //   200 = el email SI existe (imposible con contrasena dummy)
-            var pkUsuario = await ObtenerPK("usuarios");
+            var pkUsuario = await ObtenerPK("usuario");
             var verificarUrl = $"/api/usuarios/verificar-contrasena";
             var verificarBody = new Dictionary<string, string>
             {
@@ -1059,7 +1059,7 @@ WHERE u.email = @email";
 
     private async Task<(bool ok, string msg)> CambiarContrasenaInterno(string email, string nueva)
     {
-        var pkUsuario = await ObtenerPK("usuarios");
+        var pkUsuario = await ObtenerPK("usuario");
         var content = new StringContent(
             JsonSerializer.Serialize(new Dictionary<string, string> { ["contrasena"] = nueva }),
             System.Text.Encoding.UTF8, "application/json");
